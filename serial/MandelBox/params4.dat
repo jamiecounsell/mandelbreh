@@ -1,0 +1,29 @@
+#CAMERA
+#camera position x,y,z; 
+-5 -5 5
+#target position x,y,z
+1.4 4 4
+#camera up vector x,y,z;  0, 1, 0 good default
+0 1 0
+#field of view
+1.8
+#
+#IMAGE
+#image size 
+800 600
+#detail level, the smaller the more detailed, -3 good defaut
+-2.5
+# 
+#FRACTAL  
+#scale, rmin, rFixed
+2.0  0.5 1
+#max iterations, escape time
+18 10
+#
+#COLORING
+#coloring type 0 or 1
+1
+#brightness
+1.5
+#FILE NAME
+image4.bmp
