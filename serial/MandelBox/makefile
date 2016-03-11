@@ -13,4 +13,4 @@ $(PROGRAM_NAME): main.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o d
 
 
 clean:
-	rm *.o $(PROGRAM_NAME) $(EXEEXT) *~
+	rm -f *.o $(PROGRAM_NAME) $(EXEEXT) *~
