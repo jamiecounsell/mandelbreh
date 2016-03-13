@@ -15,12 +15,12 @@
 # MANDELBULB
 # ignore the first number, 0.
 # the second and third numbers are escape (or bailout) time and power
-0 4.0 9.0
+0 4.0 8.0
 # ignore the second number; the first number is the max number of iterations
 100 0
 # COLORING
 # type 0 or 1
-0
+1
 # brightness
 1.2
 # IMAGE FILE NAME
