@@ -28,7 +28,7 @@
 extern double DE(const vec3 &p);
 void normal (const vec3 & p, vec3 & normal);
 
-void rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &direction, double eps,
+double rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &direction, double eps,
 	      pixelData& pix_data)
 {
   double dist = 0.0;
@@ -77,9 +77,11 @@ void rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &
       };
       normal(normPos, pix_data.normal);
     }
-  else 
+  else {
     //we have the background colour
-    pix_data.escaped = true;
+    pix_data.escaped = true;    
+  }
+  return dist;
 }
 
 
