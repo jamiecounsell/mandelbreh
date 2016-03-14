@@ -34,6 +34,7 @@ MandelBulbParams mandelBulb_params;
 
 int main(int argc, char** argv)
 {
+  int i;
   CameraParams    camera_params;
   RenderParams    renderer_params;
   
@@ -41,14 +42,25 @@ int main(int argc, char** argv)
 
   int image_size = renderer_params.width * renderer_params.height;
   unsigned char *image = (unsigned char*)malloc(3*image_size*sizeof(unsigned char));
-
   init3D(&camera_params, &renderer_params);
-
-  renderFractal(camera_params, renderer_params, image);
-  
-  saveBMP(renderer_params.file_name, image, renderer_params.width, renderer_params.height);
-  
+  camera_params.camPos[0] = camera_params.camPos[0];
+  camera_params.camPos[1] = camera_params.camPos[1];
+  camera_params.camPos[2] = camera_params.camPos[2];
+  for (i = 0; i < 20; i++){
+    printf("Computing image %d\n",i);
+    char buf[15];
+    sprintf(buf, "../frames/%05d.bmp", i);
+    camera_params.camPos[0] = camera_params.camPos[0]-(0.01);
+    camera_params.camPos[1] = camera_params.camPos[1]-(0.01);
+    camera_params.camPos[2] = camera_params.camPos[2]-(0.01);
+    renderFractal(camera_params, renderer_params, image);
+    saveBMP(buf, image, renderer_params.width, renderer_params.height);
+  }
   free(image);
+
+  printf("Generating video. This may take a while...  ");
+  int status = system("./genvideo.sh");
+  printf("done.\n");
 
   return 0;
 }
