@@ -4,7 +4,6 @@
 *.bmp
 *.img
 *.png
-*~
 .~*
-mandelbulb
-mandelbox
+serial/MandelBulb/mandelbulb
+serial/MandelBox/mandelbox
