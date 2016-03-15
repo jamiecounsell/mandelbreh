@@ -48,6 +48,7 @@ int main(int argc, char** argv)
   camera_params.camPos[2] = camera_params.camPos[2];
   for (i = 0; i < 3; i++){
     char buf[15];
+
     sprintf(buf, "../frames/%05d.bmp", i);
 
     camera_params.camPos[0] = camera_params.camPos[0]-(0.01);
