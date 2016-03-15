@@ -4,6 +4,7 @@
 *.bmp
 *.img
 *.png
+*.mp4
+*.avi
 .~*
-serial/MandelBulb/mandelbulb
-serial/MandelBox/mandelbox
+src/mandelbulb
