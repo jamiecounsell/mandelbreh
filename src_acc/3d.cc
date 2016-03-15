@@ -24,21 +24,26 @@
 #include <string.h>
 #include "3d.h"
 
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
+
 //---------------------------------------------------------------------------------------------
 //when projection and modelview matricies are static (computed only once, and camera does not mover)
-int UnProject(double winX, double winY, CameraParams camP, double *obj)
+
+int UnProject(double winX, double winY, const int viewport[4], const double projection[16], double obj[3])
 {
   //Transformation vectors
   double in[4], out[4];
   
   //Transformation of normalized coordinates between -1 and 1
-  in[0]=(winX-(double)(camP.viewport[0]))/(double)(camP.viewport[2])*2.0-1.0;
-  in[1]=(winY-(double)(camP.viewport[1]))/(double)(camP.viewport[3])*2.0-1.0;
+  in[0]=(winX-(double)(viewport[0]))/(double)(viewport[2])*2.0-1.0;
+  in[1]=(winY-(double)(viewport[1]))/(double)(viewport[3])*2.0-1.0;
   in[2]=2.0-1.0;
   in[3]=1.0;
   
   //Objects coordinates
-  MultiplyMatrixByVector(out, camP.matInvProjModel, in);
+  MultiplyMatrixByVector(out, projection, in);
   
   if(out[3]==0.0)
     return 0;
@@ -50,6 +55,32 @@ int UnProject(double winX, double winY, CameraParams camP, double *obj)
   return 1;
 }
 
+
+/*
+int UnProject(double winX, double winY, CameraParams camP, double obj[3])
+{
+  //Transformation vectors
+  double in[4], out[4];
+  
+  //Transformation of normalized coordinates between -1 and 1
+  in[0]=(winX-(double)(camP.viewport[0]))/(double)(camP.viewport[2])*2.0-1.0;
+  in[1]=(winY-(double)(camP.viewport[1]))/(double)(camP.viewport[3])*2.0-1.0;
+  in[2]=2.0-1.0;
+  in[3]=1.0;
+
+//camP.matInvProjModel
+  MultiplyMatrixByVector(out, camP.matInvProjModel, in);
+  
+  if(out[3]==0.0)
+    return 0;
+
+  out[3] = 1.0/out[3];
+  obj[0] = out[0]*out[3];
+  obj[1] = out[1]*out[3];
+  obj[2] = out[2]*out[3];
+  return 1;
+}
+*/
 
 void LoadIdentity(double *matrix){
   matrix[0] = 1.0;
@@ -235,7 +266,7 @@ void MultiplyMatrices(double *result, const double *matrix1, const double *matri
     matrix1[15]*matrix2[15];
 }
 
-void MultiplyMatrixByVector(double *resultvector, double *matrix, double *pvector)
+void MultiplyMatrixByVector(double *resultvector, const double matrix[16], double *pvector)
 {
   resultvector[0]=matrix[0]*pvector[0]+matrix[4]*pvector[1]+matrix[8]*pvector[2]+matrix[12]*pvector[3];
   resultvector[1]=matrix[1]*pvector[0]+matrix[5]*pvector[1]+matrix[9]*pvector[2]+matrix[13]*pvector[3];

@@ -42,13 +42,14 @@ double LengthVector   (double *vector);
 void   NormalizeVector(double *vector);
 void   ComputeNormalOfPlane(double *normal, double *v1, double *v2);
 void   MultiplyMatrices(double *result, const double *matrix1, const double *matrix2);
-void   MultiplyMatrixByVector(double *resultvector, double *matrix, double *pvector);
+void   MultiplyMatrixByVector(double *resultvector, const double matrix[16], double *pvector);
 int    InvertMatrix(double *m, double *out);
 void   Translate(double *result, double x, double y, double z);
 //int    UnProject(double winX, double winY, double winZ, const double *model, 
 //		 const double *proj, const int *view, double *obj);
 
 #pragma acc routine seq
-int    UnProject(double winX, double winY, CameraParams camP, double *obj);
+int UnProject(double winX, double winY, const int viewport[4], const double projection[16], double obj[3]);
+//int UnProject(double winX, double winY, CameraParams camP, double obj[3]);
 
 #endif

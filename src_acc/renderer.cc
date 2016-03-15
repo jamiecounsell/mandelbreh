@@ -40,31 +40,35 @@ extern double rayMarch (const RenderParams &render_params, const vec3 &from, con
 extern vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
           const vec3 &from, const vec3  &direction);
 
-
 void renderFractal(const CameraParams &camera_params, const RenderParams &renderer_params, 
        unsigned char* image, int frame)
 {
-
   
   //double time = getTime();
 
-  // COPY IN CAMERA PARAMS
-  /*
-  double* c_camPos = camera_params.camPos; //3
-  double* c_camTarget = camera_params.camTarget; //3
-  double* c_camUp = camera_params.camUp; //3
-  double c_fov = camera_params.fov;
-  double* c_matModelView = camera_params.matModelView;//16
-  double* c_matProjection = camera_params
-  double
-  */
-
   const int height = renderer_params.height;
   const int width  = renderer_params.width;
+  
+  #pragma acc enter data copyin(camera_params)
+  #pragma acc enter data copyin(                        \
+                          camera_params.camPos[:3],      \
+                          camera_params.camTarget[:3],   \
+                          camera_params.camUp[:3],      \
+                          camera_params.matModelView[:16], \
+                          camera_params.matProjection[:16], \
+                          camera_params.matInvProjModel[:16], \
+                          camera_params.viewport[:4] \
+                          )  
 
+  #pragma acc enter data copyin(renderer_params)
+  #pragma acc enter data copyin(                  \
+                          renderer_params.file_name[:80] \
+                          )
 
-  #pragma acc kernels copy(image[0:height*width*3]) copyin(camera_params[0:sizeof(CameraParams)], renderer_params[0:sizeof(RenderParams)]) //size of camera, render params?
+  #pragma acc kernels copy(image[0:height*width*3])
   {
+
+  //double testtt = camera_params.matModelView[5];
 
   const double eps = pow(10.0, renderer_params.detail); 
   double farPoint[3];
@@ -73,7 +77,7 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
   SET_DOUBLE_POINT(from, camera_params.camPos);
   
 
-  
+  // can you use nested structs as long as they are created within?
   pixelData pix_data;
   
   vec3 color;
@@ -87,8 +91,9 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
     {
       // get point on the 'far' plane
       // since we render one frame only, we can use the more specialized method
-      // unsigned char error
-      UnProject(i, j, camera_params, farPoint);
+      //UnProject(i, j, camera_params, farPoint);
+      UnProject(i, j, camera_params.viewport, camera_params.matInvProjModel, farPoint);
+
       
       SUBTRACT_POINT(to, farPoint, camera_params.camPos);//SubtractDoubleDouble(farPoint,camera_params.camPos);
       NORMALIZE(to);

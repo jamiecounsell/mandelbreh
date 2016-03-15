@@ -24,6 +24,10 @@
 #include <cmath>
 #include <algorithm>
 
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
+
 using namespace std;
 
 //---lightning and colouring---------
@@ -58,6 +62,7 @@ void lighting(const vec3 &n, const vec3 &color, const vec3 &pos, const vec3 &dir
 vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
 	       const vec3 &from, const vec3  &direction)
 {
+
   //colouring and lightning
   //vec3 hitColor = baseColor;
   vec3 hitColor;

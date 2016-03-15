@@ -40,6 +40,7 @@ double rayMarch(const RenderParams &render_params, const vec3 &from, const vec3 
   
   int steps=0;
   vec3 p;
+  
   do 
     {      
       //p = from + direction * totalDist;
@@ -58,7 +59,8 @@ double rayMarch(const RenderParams &render_params, const vec3 &from, const vec3 
       steps++;
     }
   while (dist > epsModified && totalDist <= render_params.maxDistance && steps < render_params.maxRaySteps);
-  
+
+
   //vec3 hitNormal; UNUSED???
 
   if (dist < epsModified) 
