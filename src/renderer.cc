@@ -27,14 +27,14 @@
 #include "3d.h"
 
 extern double getTime();
-extern void   printProgress( double perc, double time );
+extern void   printProgress(double perc, double time, int frame);
 
-extern void rayMarch (const RenderParams &render_params, const vec3 &from, const vec3  &to, double eps, pixelData &pix_data);
+extern double rayMarch (const RenderParams &render_params, const vec3 &from, const vec3  &to, double eps, pixelData &pix_data);
 extern vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
-		      const vec3 &from, const vec3  &direction);
+          const vec3 &from, const vec3  &direction);
 
 void renderFractal(const CameraParams &camera_params, const RenderParams &renderer_params, 
-		   unsigned char* image)
+       unsigned char* image, int frame)
 {
 
   
@@ -55,32 +55,31 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
   
   int i,j,k;
   for(j = 0; j < height; j++)
-    {
+  {
       //for each column pixel in the row
-      for(i = 0; i <width; i++)
-	{
-	  // get point on the 'far' plane
-	  // since we render one frame only, we can use the more specialized method
-	  UnProject(i, j, camera_params, farPoint);
-	  
-	  // to = farPoint - camera_params.camPos
-	  SUBTRACT_POINT(to, farPoint, camera_params.camPos);//SubtractDoubleDouble(farPoint,camera_params.camPos);
-    NORMALIZE(to);
-    //to.Normalize();
-	  
-	  //render the pixel
-	  rayMarch(renderer_params, from, to, eps, pix_data);
-	  
-	  //get the colour at this pixel
-	  color = getColour(pix_data, renderer_params, from, to);
+    for(i = 0; i <width; i++)
+    {
+      // get point on the 'far' plane
+      // since we render one frame only, we can use the more specialized method
+      UnProject(i, j, camera_params, farPoint);
       
-	  //save colour into texture
-	  k = (j * width + i)*3;
-	  image[k+2] = (unsigned char)(color.x * 255);
-	  image[k+1] = (unsigned char)(color.y * 255);
-	  image[k]   = (unsigned char)(color.z * 255);
-	}
-      printProgress((j+1)/(double)height,getTime()-time);
+      // to = farPoint - camera_params.camPos
+      SUBTRACT_POINT(to, farPoint, camera_params.camPos);//SubtractDoubleDouble(farPoint,camera_params.camPos);
+      NORMALIZE(to);
+      //to.Normalize();
+      
+      //render the pixel
+      rayMarch(renderer_params, from, to, eps, pix_data);
+      
+      //get the colour at this pixel
+      color = getColour(pix_data, renderer_params, from, to);
+        
+      //save colour into texture
+      k = (j * width + i)*3;
+      image[k+2] = (unsigned char)(color.x * 255);
+      image[k+1] = (unsigned char)(color.y * 255);
+      image[k]   = (unsigned char)(color.z * 255);
     }
-  printf("\n rendering done:\n");
+    printProgress((j+1)/(double)height,getTime()-time, frame);
+  }
 }
