@@ -32,8 +32,9 @@
 double MandelBulbDistanceEstimator(const vec3 &p0, const MandelBulbParams &params)
 {
   vec3 z;
-  z = p0;
-  
+  //z = p0;
+  SET_POINT(z, p0);
+
   double dr = 1.0;
   double r = 0.0;
 
@@ -42,7 +43,8 @@ double MandelBulbDistanceEstimator(const vec3 &p0, const MandelBulbParams &param
 
   for (int i=0; i < params.num_iter; i++) 
     {
-      r = z.Magnitude();//MAGNITUDE(r,z);
+      //r = z.Magnitude();//
+      MAGNITUDE(r,z);
       if(r > Bailout) break; 
 
       double theta = acos(z.z/r);

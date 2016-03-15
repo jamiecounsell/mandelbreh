@@ -42,7 +42,8 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
   double farPoint[3];
   vec3 to, from;
   
-  from.SetDoublePoint(camera_params.camPos);
+  //from.SetDoublePoint(camera_params.camPos);
+  SET_DOUBLE_POINT(from, camera_params.camPos);
   
   const int height = renderer_params.height;
   const int width  = renderer_params.width;
@@ -63,8 +64,9 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
 	  UnProject(i, j, camera_params, farPoint);
 	  
 	  // to = farPoint - camera_params.camPos
-	  to = SubtractDoubleDouble(farPoint,camera_params.camPos);
-	  to.Normalize();
+	  SUBTRACT_POINT(to, farPoint, camera_params.camPos);//SubtractDoubleDouble(farPoint,camera_params.camPos);
+    NORMALIZE(to);
+    //to.Normalize();
 	  
 	  //render the pixel
 	  rayMarch(renderer_params, from, to, eps, pix_data);
