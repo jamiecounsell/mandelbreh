@@ -24,9 +24,20 @@
 #include <string.h>
 #include "3d.h"
 
+
+inline void MultiplyMatrixByVector(double *resultvector, const double *matrix, double *pvector)
+{
+  resultvector[0]=matrix[0]*pvector[0]+matrix[4]*pvector[1]+matrix[8]*pvector[2]+matrix[12]*pvector[3];
+  resultvector[1]=matrix[1]*pvector[0]+matrix[5]*pvector[1]+matrix[9]*pvector[2]+matrix[13]*pvector[3];
+  resultvector[2]=matrix[2]*pvector[0]+matrix[6]*pvector[1]+matrix[10]*pvector[2]+matrix[14]*pvector[3];
+  resultvector[3]=matrix[3]*pvector[0]+matrix[7]*pvector[1]+matrix[11]*pvector[2]+matrix[15]*pvector[3];
+}
+
+
 //---------------------------------------------------------------------------------------------
-//when projection and modelview matricies are static (computed only once, and camera does not mover)
-int UnProject(double winX, double winY, CameraParams camP, double *obj)
+//when projection and modelview matricies are static (computed only once, and camera does not move)
+#pragma acc routine seq
+int UnProject(double winX, double winY, const CameraParams camP, double obj[3])
 {
   //Transformation vectors
   double in[4], out[4];
@@ -233,14 +244,6 @@ void MultiplyMatrices(double *result, const double *matrix1, const double *matri
     matrix1[7]*matrix2[13]+
     matrix1[11]*matrix2[14]+
     matrix1[15]*matrix2[15];
-}
-
-void MultiplyMatrixByVector(double *resultvector, double *matrix, double *pvector)
-{
-  resultvector[0]=matrix[0]*pvector[0]+matrix[4]*pvector[1]+matrix[8]*pvector[2]+matrix[12]*pvector[3];
-  resultvector[1]=matrix[1]*pvector[0]+matrix[5]*pvector[1]+matrix[9]*pvector[2]+matrix[13]*pvector[3];
-  resultvector[2]=matrix[2]*pvector[0]+matrix[6]*pvector[1]+matrix[10]*pvector[2]+matrix[14]*pvector[3];
-  resultvector[3]=matrix[3]*pvector[0]+matrix[7]*pvector[1]+matrix[11]*pvector[2]+matrix[15]*pvector[3];
 }
 
 #define SWAP_ROWS(a, b) { double *_tmp = a; (a)=(b); (b)=_tmp; }

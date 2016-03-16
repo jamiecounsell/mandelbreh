@@ -37,6 +37,9 @@ extern void   printProgress(double perc, double time, int frame);
 extern MandelBulbParams mandelBulb_params;
 
 #pragma acc routine seq
+extern int UnProject(double winX, double winY, const CameraParams camP, double obj[3]);
+
+#pragma acc routine seq
 extern void rayMarch (const RenderParams &render_params, const vec3 &from, const vec3  &to, 
   double eps, pixelData &pix_data, const MandelBulbParams &bulb_params);
 
@@ -94,12 +97,12 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
     for(i = 0; i <width; i++)
     {
 
-      /*
 
       // get point on the 'far' plane
       // since we render one frame only, we can use the more specialized method
       UnProject(i, j, camera_params, farPoint);
       
+      /*
       // to = farPoint - camera_params.camPos
       SUBTRACT_POINT(to, farPoint, camera_params.camPos);//SubtractDoubleDouble(farPoint,camera_params.camPos);
       NORMALIZE(to);
