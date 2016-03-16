@@ -26,10 +26,21 @@
 #include "vector3d.h"
 #include "3d.h"
 
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
+
 extern double getTime();
 extern void   printProgress(double perc, double time, int frame);
 
-extern double rayMarch (const RenderParams &render_params, const vec3 &from, const vec3  &to, double eps, pixelData &pix_data);
+// from main.cc
+extern MandelBulbParams mandelBulb_params;
+
+#pragma acc routine seq
+extern double rayMarch (const RenderParams &render_params, const vec3 &from, const vec3  &to, 
+  double eps, pixelData &pix_data, const MandelBulbParams &bulb_params);
+
+#pragma acc routine seq
 extern vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
           const vec3 &from, const vec3  &direction);
 
@@ -47,10 +58,35 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
   
   const int height = renderer_params.height;
   const int width  = renderer_params.width;
+
+
+  #pragma acc enter data present_or_copyin(camera_params)
+  #pragma acc enter data present_or_copyin(                        \
+                          camera_params.camPos[:3],      \
+                          camera_params.camTarget[:3],   \
+                          camera_params.camUp[:3],      \
+                          camera_params.matModelView[:16], \
+                          camera_params.matProjection[:16], \
+                          camera_params.matInvProjModel[:16], \
+                          camera_params.viewport[:4] \
+                          )  
+
+  #pragma acc enter data present_or_copyin(renderer_params)
+  #pragma acc enter data present_or_copyin(                  \
+                          renderer_params.file_name[:80] \
+                          )
+
+  #pragma acc kernels copy(image[0:height*width*3]) present_or_copyin(mandelBulb_params, width, height)
+  {
+
   
   pixelData pix_data;
   
+  #ifndef _OPENACC
   double time = getTime();
+  #endif
+  
+
   vec3 color;
   
   int i,j,k;
@@ -69,7 +105,7 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
       //to.Normalize();
       
       //render the pixel
-      rayMarch(renderer_params, from, to, eps, pix_data);
+      //rayMarch(renderer_params, from, to, eps, pix_data, mandelBulb_params);
       
       //get the colour at this pixel
       color = getColour(pix_data, renderer_params, from, to);
@@ -80,6 +116,12 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
       image[k+1] = (unsigned char)(color.y * 255);
       image[k]   = (unsigned char)(color.z * 255);
     }
+
+    #ifndef _OPENACC
     printProgress((j+1)/(double)height,getTime()-time, frame);
+    #endif
   }
+
+
+}//end pragma
 }

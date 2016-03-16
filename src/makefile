@@ -1,15 +1,37 @@
-VIDEO    = -DVIDEO
-CC       =  g++
-FLAGS    = -O3 -Wall $(VIDEO)
-CFLAGS   = $(FLAGS)
-CXXFLAGS = $(FLAGS)
-LDFLAGS  = -lm
+#CFLAGS=-g -O2 -Wall -pg -DMONITOR
 
-PROGRAM_NAME=mandelbulb
+all: ser acc
 
-$(PROGRAM_NAME): main.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o distance_est.o \
-	mandelbulb_dist_est.o raymarching.o renderer.o init3D.o
-	$(CC) -o $@ $? $(CFLAGS) $(LDFLAGS)
+ser: VIDEO    = -DVIDEO
+ser: CXX      =  g++  
+ser: FLAGS    = -O3 $(VIDEO) -Wall
+ser: CFLAGS   = $(FLAGS)
+ser: CXXFLAGS = $(FLAGS)
+ser: LDFLAGS  = -lm
+
+acc: VIDEO    = -DVIDEO
+acc: CC       = pgc++
+acc: CXX=pgc++ 
+acc: CPP=pgc++
+acc: FLAGS    = -fast -acc -Minfo=accel -Minline -ta=tesla,cc35 -O3 $(VIDEO)
+acc: CFLAGS   = $(FLAGS)
+acc: CXXFLAGS = $(FLAGS)
+acc: LDFLAGS  = -acc -Minfo=accel -Minline -ta=tesla,cc35
+
+ser: PROGRAM_NAME=mandelbulb_ser
+acc: PROGRAM_NAME=mandelbulb_acc
+
+OBJS = 
+MP_OBJS = main_mp.o readwriteppm.o compimage_mp.o
+ACC_OBJS = main_acc.o readwriteppm.o compimage_acc.o
+
+
+#$(PROGRAM_NAME): $(OBJS)
+ser: $(OBJS)
+	$(CC) $(LDFLAGS) -o mandelbulb_ser $?
+
+acc: main_acc.o readwriteppm.o compimage_acc.o
+	$(CC) $(LDFLAGS) -o genimg_acc $?
 
 clean:
-	rm -f *.o $(PROGRAM_NAME) $(EXEEXT) *~
+  rm -f *.o mandelbulb_acc mandelbulb_ser $(EXEEXT) *~
