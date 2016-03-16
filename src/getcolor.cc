@@ -96,7 +96,7 @@ vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
 
 
 	  //gamma correction
-	  clamp(hitColor, 0.0, 1.0);
+	  v_clamp(hitColor, 0.0, 1.0);
 	  //hitColor = hitColor*hitColor;
     SQUARE(hitColor);
 	}
