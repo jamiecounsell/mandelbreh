@@ -2,7 +2,7 @@ all: acc
 
 VIDEO    = -DVIDEO
 CXX      =  pgc++
-FLAGS    = -fast -acc -ta=tesla,cc35 -Minfo=accel -Minline -O3 -Wall $(VIDEO)
+FLAGS    = -fast -acc -ta=tesla,cc35 -Minfo=accel -Minline -O3 $(VIDEO)
 CFLAGS   = $(FLAGS)
 CXXFLAGS = $(FLAGS)
 LDFLAGS  = 

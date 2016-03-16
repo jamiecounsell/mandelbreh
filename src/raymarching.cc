@@ -54,12 +54,19 @@ inline void normal(const vec3 & p, vec3 & normal, const MandelBulbParams &bulb_p
     MandelBulbDistanceEstimator(vector_sum(p,e2), bulb_params) - MandelBulbDistanceEstimator(vector_diff(p,e2), bulb_params), 
     MandelBulbDistanceEstimator(vector_sum(p,e3), bulb_params) - MandelBulbDistanceEstimator(vector_diff(p,e3), bulb_params) 
   );
+<<<<<<< HEAD
   //normal.Normalize();
+=======
+>>>>>>> f5880c6fad036bb813cef57f269f469724104a34
   NORMALIZE(normal);
 }
 
 #pragma acc routine seq
+<<<<<<< HEAD
 double rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &direction, double eps,
+=======
+void rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &direction, double eps,
+>>>>>>> f5880c6fad036bb813cef57f269f469724104a34
 	      pixelData& pix_data, const MandelBulbParams &bulb_params)
 {
   double dist = 0.0;
@@ -112,6 +119,11 @@ double rayMarch(const RenderParams &render_params, const vec3 &from, const vec3 
     //we have the background colour
     pix_data.escaped = true;    
   }
+<<<<<<< HEAD
   
   return dist;
+=======
+
+  //return dist;
+>>>>>>> f5880c6fad036bb813cef57f269f469724104a34
 }

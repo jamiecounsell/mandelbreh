@@ -37,7 +37,11 @@ extern void   printProgress(double perc, double time, int frame);
 extern MandelBulbParams mandelBulb_params;
 
 #pragma acc routine seq
+<<<<<<< HEAD
 extern double rayMarch (const RenderParams &render_params, const vec3 &from, const vec3  &to, 
+=======
+extern void rayMarch (const RenderParams &render_params, const vec3 &from, const vec3  &to, 
+>>>>>>> f5880c6fad036bb813cef57f269f469724104a34
   double eps, pixelData &pix_data, const MandelBulbParams &bulb_params);
 
 #pragma acc routine seq
@@ -80,12 +84,12 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
   {
 
   
-  pixelData pix_data;
   
   #ifndef _OPENACC
   double time = getTime();
   #endif
   
+  pixelData pix_data;
 
   vec3 color;
   
@@ -105,7 +109,7 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
       //to.Normalize();
       
       //render the pixel
-      //rayMarch(renderer_params, from, to, eps, pix_data, mandelBulb_params);
+      rayMarch(renderer_params, from, to, eps, pix_data, mandelBulb_params);
       
       //get the colour at this pixel
       color = getColour(pix_data, renderer_params, from, to);
