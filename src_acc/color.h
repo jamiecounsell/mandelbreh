@@ -23,12 +23,22 @@
 
 #include "vector3d.h"
 
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
+
 typedef struct
 {
   bool escaped;
-  vec3 hit;
-  vec3 normal;
-} pixelData;
+  double hit_x;
+  double hit_y;
+  double hit_z;
+  double normal_x;
+  double normal_y;
+  double normal_z;
+} pixelData2;
+
+
 
 #endif
 

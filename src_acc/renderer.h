@@ -22,6 +22,10 @@
 #ifndef _RENMandelBulbDERER_H
 #define _RENMandelBulbDERER_H
 
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
+
 typedef struct 
 {
   int fractalType;

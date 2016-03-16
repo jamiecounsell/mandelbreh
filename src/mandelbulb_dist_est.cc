@@ -19,9 +19,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+    /*
 #include "color.h"
 #include "mandelbulb.h"
 #ifdef _OPENACC
+#include <openacc.h>
 #include <accelmath.h>
 #else
 #include <math.h>
@@ -66,7 +68,7 @@ double MandelBulbDistanceEstimator(const vec3 &p0, const MandelBulbParams &param
 
   return 0.5*log(r)*r/dr;
 }
-
+*/
 
 
 

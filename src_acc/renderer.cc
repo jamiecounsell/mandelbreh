@@ -1,23 +1,3 @@
-/*
-   This file is part of the Mandelbox program developed for the course
-    CS/SE  Distributed Computer Systems taught by N. Nedialkov in the
-    Winter of 2015-2016 at McMaster University.
-
-    Copyright (C) 2015-2016 T. Gwosdz and N. Nedialkov
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #include <stdio.h>
 
 #include "color.h"
@@ -30,15 +10,26 @@
 #include <openacc.h>
 #endif
 
-extern double getTime();
-extern void   printProgress(double perc, double time, int frame);
+//extern double getTime();
+//extern void   printProgress(double perc, double time, int frame);
+
+// from main.cc
+extern MandelBulbParams mandelBulb_params;
 
 #pragma acc routine seq
-extern double rayMarch (const RenderParams &render_params, const vec3 &from, const vec3  &to, double eps, pixelData &pix_data);
+extern double DE(const vec3 &p, const MandelBulbParams &params);
 
 #pragma acc routine seq
-extern vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
-          const vec3 &from, const vec3  &direction);
+extern double rayMarch (const int maxRaySteps, const float maxDistance, const vec3 &from, 
+  const vec3  &to, double eps, pixelData2 &pix_data, const MandelBulbParams &bulb_params);
+//extern double rayMarch (const RenderParams &render_params, const vec3 &from, const vec3  &to, double eps, pixelData &pix_data);
+
+#pragma acc routine seq
+extern void getColour(const pixelData2 &pixData, const int colourType, const float brightness,
+          const vec3 &from, const vec3  &direction, vec3 &result);
+//extern vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
+//          const vec3 &from, const vec3  &direction);
+
 
 void renderFractal(const CameraParams &camera_params, const RenderParams &renderer_params, 
        unsigned char* image, int frame)
@@ -48,9 +39,11 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
 
   const int height = renderer_params.height;
   const int width  = renderer_params.width;
+
+  pixelData2 pix;
   
-  #pragma acc enter data copyin(camera_params)
-  #pragma acc enter data copyin(                        \
+  #pragma acc enter data present_or_copyin(camera_params)
+  #pragma acc enter data present_or_copyin(                        \
                           camera_params.camPos[:3],      \
                           camera_params.camTarget[:3],   \
                           camera_params.camUp[:3],      \
@@ -60,16 +53,15 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
                           camera_params.viewport[:4] \
                           )  
 
-  #pragma acc enter data copyin(renderer_params)
-  #pragma acc enter data copyin(                  \
+  #pragma acc enter data present_or_copyin(renderer_params)
+  #pragma acc enter data present_or_copyin(                  \
                           renderer_params.file_name[:80] \
                           )
 
-  #pragma acc kernels copy(image[0:height*width*3])
+  #pragma acc kernels copy(image[0:height*width*3]) present_or_copyin(mandelBulb_params, width, height)
   {
 
-  //double testtt = camera_params.matModelView[5];
-
+  // pow function?
   const double eps = pow(10.0, renderer_params.detail); 
   double farPoint[3];
   vec3 to, from;
@@ -77,9 +69,7 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
   SET_DOUBLE_POINT(from, camera_params.camPos);
   
 
-  // can you use nested structs as long as they are created within?
-  pixelData pix_data;
-  
+
   vec3 color;
 
 
@@ -94,16 +84,17 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
       //UnProject(i, j, camera_params, farPoint);
       UnProject(i, j, camera_params.viewport, camera_params.matInvProjModel, farPoint);
 
-      
-      SUBTRACT_POINT(to, farPoint, camera_params.camPos);//SubtractDoubleDouble(farPoint,camera_params.camPos);
+      SUBTRACT_POINT(to, farPoint, camera_params.camPos);
       NORMALIZE(to);
       
       //render the pixel
-      rayMarch(renderer_params, from, to, eps, pix_data);
+      const int max_rs =  renderer_params.maxRaySteps;
+      const float max_d = renderer_params.maxDistance;
+      rayMarch(max_rs, max_d, from, to, eps, pix, mandelBulb_params);
       
-      //get the colour at this pixel
-      // wrong # of arguments error
-      color = getColour(pix_data, renderer_params, from, to);
+      const int ct = renderer_params.colourType;
+      const float br = renderer_params.brightness;
+      getColour(pix, ct, br, from, to, color);
         
       //save colour into texture
       k = (j * width + i)*3;
@@ -115,4 +106,9 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
   }
 
   }// end pragma
+
+  // pragma acc exit
+
+
+
 }

@@ -21,6 +21,10 @@
 #ifndef _CAMERA_H
 #define _CAMERA_H
 
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
+
 typedef struct 
 {
   double camPos[3];

@@ -43,9 +43,7 @@ int main(int argc, char** argv)
   int image_size = renderer_params.width * renderer_params.height;
   unsigned char *image = (unsigned char*)malloc(3*image_size*sizeof(unsigned char));
   init3D(&camera_params, &renderer_params);
-  camera_params.camPos[0] = camera_params.camPos[0];
-  camera_params.camPos[1] = camera_params.camPos[1];
-  camera_params.camPos[2] = camera_params.camPos[2];
+  
   for (i = 0; i < 3; i++){
     char buf[15];
 

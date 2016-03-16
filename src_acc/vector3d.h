@@ -3,6 +3,7 @@
 
 #ifdef _OPENACC
 #include <accelmath.h>
+#include <openacc.h>
 #else
 #include <math.h>
 #endif
@@ -63,20 +64,30 @@ inline double clamp(double d, double min, double max)
   return t > max ? max : t;
 }
 
-inline vec3 vector_sum(vec3 v1, vec3 v2){
-	vec3 result = {v1.x + v2.x, v1.y + v2.y, v1.z + v2.z};
-	return result;
-}
+/*
+inline void vector_sum(vec3 &res, const vec3 &v1, vec3 &v2){
+	//vec3 result = {
+  res.x = v1.x + v2.x;
+  res.y = v1.y + v2.y; 
+  res.z = v1.z + v2.z;
+	//return result;
 
-inline vec3 vector_diff(vec3 v1, vec3 v2){
-	vec3 result = {v1.x - v2.x, v1.y - v2.y, v1.z - v2.z};
-	return result;
 }
+*/
+
+#define VECTOR_SUM(r, v1, v2) {  r.x = v1.x + v2.x; r.y = v1.y + v2.y; r.z = v1.z + v2.z; }
+#define VECTOR_DIFF(r, v1, v2) {  r.x = v1.x - v2.x; r.y = v1.y - v2.y; r.z = v1.z - v2.z; }
+//inline void vector_diff(vec3 &res, const vec3 &v1, vec3 &v2){
+
+
+  //vec3 result = {v1.x - v2.x, v1.y - v2.y, v1.z - v2.z};
+	//return result;
+//}
 
 
 //#define VECTOR_CLAMP(v, min, max) { v.x = clamp(v.x,min,max); v.y = clamp(v.y,min,max); v.z = clamp(v.z,min,max); }
 
-inline void clamp(vec3 &v, double min, double max) 
+inline void v_clamp(vec3 &v, double min, double max) 
 {
   v.x = clamp(v.x,min,max);
   v.y = clamp(v.y,min,max);
