@@ -66,12 +66,13 @@ inline void lighting(const vec3 &n, const vec3 &color, const vec3 &pos, const ve
 }
 
 #pragma acc routine seq
-vec3 getColour(const pixelData &pixData, const int colourType, const float brightness,
-         const vec3 &from, const vec3  &direction)
+void getColour(const pixelData &pixData, const int colourType, const float brightness,
+         const vec3 &from, const vec3  &direction, vec3 &result)
 //vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
 //	       const vec3 &from, const vec3  &direction)
 {
 
+/*
   const vec3 baseColor = {1.0, 1.0, 1.0};
   const vec3 backColor = {0.4, 0.4, 0.4};
 
@@ -110,10 +111,14 @@ vec3 getColour(const pixelData &pixData, const int colourType, const float brigh
 	  hitColor.z = t;
 	}
     }
-  else 
+  else {
     //we have the background colour
-    //hitColor = backColor;
     SET_POINT(hitColor, backColor);
+  }
+  
+  */
+    VEC(result, 4.4, 155.6, 123.9);
+    //SET_POINT(result, backColor);
 
-  return hitColor;
+  //return hitColor;
 }

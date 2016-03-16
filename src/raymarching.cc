@@ -81,9 +81,9 @@ inline void normal(const vec3 & p, vec3 & normal, const MandelBulbParams &bulb_p
 
 #pragma acc routine seq
 void rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &direction, double eps,
-        vec3 &pd_hit, vec3 &pd_normal, bool pd_escaped, const MandelBulbParams &bulb_params)
+        pixelData& pix_data, const MandelBulbParams &bulb_params)
 //void rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &direction, double eps,
-//	      pixelData& pix_data, const MandelBulbParams &bulb_params)
+//        vec3 &pd_hit, vec3 &pd_normal, bool pd_escaped, const MandelBulbParams &bulb_params)
 {
 
 
@@ -94,7 +94,7 @@ void rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &
 
   double epsModified = 0.0;
   
-  /*  
+   
   
   int steps=0;
   vec3 p;
@@ -140,7 +140,7 @@ void rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &
     //we have the background colour
     pix_data.escaped = true;    
   }
-  */
+  
   //return dist;
 
   

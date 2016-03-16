@@ -40,14 +40,15 @@ extern MandelBulbParams mandelBulb_params;
 extern int UnProject(int ix, int iy, const int viewport[4], const double matInvProjModel[16], double* obj);
 
 #pragma acc routine seq
-void rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &direction, double eps,
-        vec3 &pd_hit, vec3 &pd_normal, bool pd_escaped, const MandelBulbParams &bulb_params);
-//extern void rayMarch (const RenderParams &render_params, const vec3 &from, const vec3  &to, 
-//  double eps, pixelData &pix_data, const MandelBulbParams &bulb_params);
+extern void rayMarch (const RenderParams &render_params, const vec3 &from, const vec3  &to, 
+  double eps, pixelData &pix_data, const MandelBulbParams &bulb_params);
+//void rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &direction, double eps,
+//        vec3 &pd_hit, vec3 &pd_normal, bool pd_escaped, const MandelBulbParams &bulb_params);
+
 
 #pragma acc routine seq
-vec3 getColour(const pixelData &pixData, const int colourType, const float brightness,
-         const vec3 &from, const vec3  &direction);
+extern void getColour(const pixelData &pixData, const int colourType, const float brightness,
+         const vec3 &from, const vec3  &direction, vec3 &result);
 //extern vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
 //          const vec3 &from, const vec3  &direction);
 
@@ -115,12 +116,15 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
       NORMALIZE(to);
       
       //render the pixel
-      rayMarch(renderer_params, from, to, eps, pix_data.hit, pix_data.normal, pix_data.escaped, mandelBulb_params);
+      //rayMarch(renderer_params, from, to, eps, pix_data.hit, pix_data.normal, pix_data.escaped, mandelBulb_params);
+      rayMarch(renderer_params, from, to, eps, pix_data, mandelBulb_params);
+
       
-      /*
       //get the colour at this pixel
-      color = getColour(pix_data, renderer_params.colourType, renderer_params.brightness, from, to);
-        
+      //color = getColour(pix_data, renderer_params.colourType, renderer_params.brightness, from, to);
+      getColour(pix_data, renderer_params.colourType, renderer_params.brightness, from, to, color);  
+
+      /*
       //save colour into texture
       k = (j * width + i)*3;
       image[k+2] = (unsigned char)(color.x * 255);
