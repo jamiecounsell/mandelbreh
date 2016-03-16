@@ -24,23 +24,33 @@
 #include <cmath>
 #include <algorithm>
 
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
+
 using namespace std;
 
 //---lightning and colouring---------
 //static vec3 CamLight(1.0,1.0,1.0);
-static vec3 CamLight = {1.0, 1.0, 1.0};
+//static vec3 CamLight = {1.0, 1.0, 1.0};
 
-static double CamLightW = 1.8;// 1.27536;
-static double CamLightMin = 0.3;// 0.48193;
+//static double CamLightW = 1.8;// 1.27536;
+//static double CamLightMin = 0.3;// 0.48193;
 //-----------------------------------
 //static const vec3 baseColor(1.0, 1.0, 1.0);
 //static const vec3 backColor(0.4,0.4,0.4);
-static const vec3 baseColor = {1.0, 1.0, 1.0};
-static const vec3 backColor = {0.4, 0.4, 0.4};
+//static const vec3 baseColor = {1.0, 1.0, 1.0};
+//static const vec3 backColor = {0.4, 0.4, 0.4};
 //-----------------------------------
 
-void lighting(const vec3 &n, const vec3 &color, const vec3 &pos, const vec3 &direction,  vec3 &outV)
+inline void lighting(const vec3 &n, const vec3 &color, const vec3 &pos, const vec3 &direction,  vec3 &outV)
 {
+
+  const vec3 CamLight = {1.0, 1.0, 1.0};
+
+  const double CamLightW = 1.8;// 1.27536;
+  const double CamLightMin = 0.3;// 0.48193;
+
   //vec3 nn = n -1.0;
   vec3 nn = {n.x - 1.0, n.y - 1.0, n.z - 1.0};
 
@@ -55,9 +65,14 @@ void lighting(const vec3 &n, const vec3 &color, const vec3 &pos, const vec3 &dir
   MULTIPLY_BY_DOUBLE(outV, ambient);
 }
 
+#pragma acc routine seq
 vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
 	       const vec3 &from, const vec3  &direction)
 {
+
+  const vec3 baseColor = {1.0, 1.0, 1.0};
+  const vec3 backColor = {0.4, 0.4, 0.4};
+
   //colouring and lightning
   //vec3 hitColor = baseColor;
   vec3 hitColor;

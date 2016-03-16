@@ -22,14 +22,45 @@
 #include <algorithm>
 #include <stdio.h>
 
+#include "mandelbulb.h"
 #include "color.h"
 #include "renderer.h"
 
-extern double DE(const vec3 &p);
-void normal (const vec3 & p, vec3 & normal);
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
 
+#pragma acc routine seq
+extern double MandelBulbDistanceEstimator(const vec3 &p, const MandelBulbParams &params);
+
+
+inline void normal(const vec3 & p, vec3 & normal, const MandelBulbParams &bulb_params)
+{
+  // compute the normal at p
+  const double sqrt_mach_eps = 1.4901e-08;
+
+  double eps ; //= std::max( p.Magnitude(), 1.0 )*sqrt_mach_eps;
+  MAGNITUDE(eps, p);
+  eps = MAX(eps, 1.0);
+  eps *= sqrt_mach_eps;
+
+  vec3 e1 = {eps, 0, 0}; 
+  vec3 e2 = {0, eps, 0}; 
+  vec3 e3 = {0, 0, eps}; 
+  
+  //normal = {DE(p+e1)-DE(p-e1), DE(p+e2)-DE(p-e2), DE(p+e3)-DE(p-e3)};//vec3(DE(p+e1)-DE(p-e1), DE(p+e2)-DE(p-e2), DE(p+e3)-DE(p-e3));
+  VEC(normal,
+    MandelBulbDistanceEstimator(vector_sum(p,e1), bulb_params) - MandelBulbDistanceEstimator(vector_diff(p,e1), bulb_params), 
+    MandelBulbDistanceEstimator(vector_sum(p,e2), bulb_params) - MandelBulbDistanceEstimator(vector_diff(p,e2), bulb_params), 
+    MandelBulbDistanceEstimator(vector_sum(p,e3), bulb_params) - MandelBulbDistanceEstimator(vector_diff(p,e3), bulb_params) 
+  );
+  //normal.Normalize();
+  NORMALIZE(normal);
+}
+
+#pragma acc routine seq
 double rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &direction, double eps,
-	      pixelData& pix_data)
+	      pixelData& pix_data, const MandelBulbParams &bulb_params)
 {
   double dist = 0.0;
   double totalDist = 0.0;
@@ -49,7 +80,7 @@ double rayMarch(const RenderParams &render_params, const vec3 &from, const vec3 
         from.z + direction.z * totalDist
       );
 
-      dist = DE(p);
+      dist = MandelBulbDistanceEstimator(p, bulb_params);
       
       totalDist += .95*dist;
       
@@ -75,36 +106,12 @@ double rayMarch(const RenderParams &render_params, const vec3 &from, const vec3 
         p.y - direction.y * epsModified, 
         p.z - direction.z * epsModified
       };
-      normal(normPos, pix_data.normal);
+      normal(normPos, pix_data.normal, bulb_params);
     }
   else {
     //we have the background colour
     pix_data.escaped = true;    
   }
-  return dist;
-}
-
-
-void normal(const vec3 & p, vec3 & normal)
-{
-  // compute the normal at p
-  const double sqrt_mach_eps = 1.4901e-08;
-
-  double eps ; //= std::max( p.Magnitude(), 1.0 )*sqrt_mach_eps;
-  MAGNITUDE(eps, p);
-  eps = MAX(eps, 1.0);
-  eps *= sqrt_mach_eps;
-
-  vec3 e1 = {eps, 0, 0}; 
-  vec3 e2 = {0, eps, 0}; 
-  vec3 e3 = {0, 0, eps}; 
   
-  //normal = {DE(p+e1)-DE(p-e1), DE(p+e2)-DE(p-e2), DE(p+e3)-DE(p-e3)};//vec3(DE(p+e1)-DE(p-e1), DE(p+e2)-DE(p-e2), DE(p+e3)-DE(p-e3));
-  VEC(normal,
-    DE( vector_sum(p,e1)) - DE(vector_diff(p,e1)), 
-    DE(vector_sum(p,e2)) - DE(vector_diff(p,e2)), 
-    DE(vector_sum(p,e3)) - DE(vector_diff(p,e3)) 
-  );
-  //normal.Normalize();
-  NORMALIZE(normal);
+  return dist;
 }
