@@ -37,15 +37,19 @@ extern void   printProgress(double perc, double time, int frame);
 extern MandelBulbParams mandelBulb_params;
 
 #pragma acc routine seq
-extern int UnProject(double winX, double winY, const CameraParams camP, double obj[3]);
+extern int UnProject(int ix, int iy, const int viewport[4], const double matInvProjModel[16], double* obj);
 
 #pragma acc routine seq
-extern void rayMarch (const RenderParams &render_params, const vec3 &from, const vec3  &to, 
-  double eps, pixelData &pix_data, const MandelBulbParams &bulb_params);
+void rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &direction, double eps,
+        vec3 &pd_hit, vec3 &pd_normal, bool pd_escaped, const MandelBulbParams &bulb_params);
+//extern void rayMarch (const RenderParams &render_params, const vec3 &from, const vec3  &to, 
+//  double eps, pixelData &pix_data, const MandelBulbParams &bulb_params);
 
 #pragma acc routine seq
-extern vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
-          const vec3 &from, const vec3  &direction);
+vec3 getColour(const pixelData &pixData, const int colourType, const float brightness,
+         const vec3 &from, const vec3  &direction);
+//extern vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
+//          const vec3 &from, const vec3  &direction);
 
 void renderFractal(const CameraParams &camera_params, const RenderParams &renderer_params, 
        unsigned char* image, int frame)
@@ -74,7 +78,7 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
 
   #pragma acc kernels copy(image[0:height*width*3]) present_or_copyin(mandelBulb_params, width, height)
   {
-    
+
   
   #ifndef _OPENACC
   double time = getTime();
@@ -96,25 +100,26 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
   for(j = 0; j < height; j++)
   {
       //for each column pixel in the row
-    for(i = 0; i <width; i++)
+    for(i = 0; i < width; i++)
     {
 
 
       // get point on the 'far' plane
       // since we render one frame only, we can use the more specialized method
-      UnProject(i, j, camera_params, farPoint);
+      UnProject(i, j, camera_params.viewport, camera_params.matInvProjModel, farPoint);
       
-      /*
+      
       // to = farPoint - camera_params.camPos
       SUBTRACT_POINT(to, farPoint, camera_params.camPos);//SubtractDoubleDouble(farPoint,camera_params.camPos);
+      
       NORMALIZE(to);
-      //to.Normalize();
       
       //render the pixel
-      rayMarch(renderer_params, from, to, eps, pix_data, mandelBulb_params);
+      rayMarch(renderer_params, from, to, eps, pix_data.hit, pix_data.normal, pix_data.escaped, mandelBulb_params);
       
+      /*
       //get the colour at this pixel
-      color = getColour(pix_data, renderer_params, from, to);
+      color = getColour(pix_data, renderer_params.colourType, renderer_params.brightness, from, to);
         
       //save colour into texture
       k = (j * width + i)*3;

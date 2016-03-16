@@ -66,8 +66,10 @@ inline void lighting(const vec3 &n, const vec3 &color, const vec3 &pos, const ve
 }
 
 #pragma acc routine seq
-vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
-	       const vec3 &from, const vec3  &direction)
+vec3 getColour(const pixelData &pixData, const int colourType, const float brightness,
+         const vec3 &from, const vec3  &direction)
+//vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
+//	       const vec3 &from, const vec3  &direction)
 {
 
   const vec3 baseColor = {1.0, 1.0, 1.0};
@@ -84,14 +86,14 @@ vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
       lighting(pixData.normal, hitColor, pixData.hit, direction, hitColor);
       
       //add normal based colouring
-      if(render_params.colourType == 0 || render_params.colourType == 1)
+      if(colourType == 0 || colourType == 1)
 	{
 	  //hitColor = hitColor * pixData.normal;
     VEC(hitColor, hitColor.x * pixData.normal.x, hitColor.y * pixData.normal.y, hitColor.z * pixData.normal.z);
 	  //hitColor = (hitColor + 1.0)/2.0;
 	  //hitColor = hitColor*render_params.brightness;
     VEC(hitColor, (hitColor.x + 1.0)/2.0, (hitColor.y + 1.0)/2.0, (hitColor.z + 1.0)/2.0 );
-	  VEC(hitColor, hitColor.x * render_params.brightness, hitColor.y * render_params.brightness, hitColor.z * render_params.brightness);
+	  VEC(hitColor, hitColor.x * brightness, hitColor.y * brightness, hitColor.z * brightness);
 
 
 
@@ -100,7 +102,7 @@ vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
 	  //hitColor = hitColor*hitColor;
     SQUARE(hitColor);
 	}
-      if(render_params.colourType == 1)
+      if(colourType == 1)
 	{
 	  //"swap" colors
 	  double t = hitColor.x;
