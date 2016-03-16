@@ -47,13 +47,35 @@ inline void normal(const vec3 & p, vec3 & normal, const MandelBulbParams &bulb_p
   vec3 e1 = {eps, 0, 0}; 
   vec3 e2 = {0, eps, 0}; 
   vec3 e3 = {0, 0, eps}; 
+
+  vec3 vs1, vs2, vs3;
+  vec3 vd1, vd2, vd3;
+  VECTOR_SUM(vs1, p,e1);
+  VECTOR_SUM(vs2, p,e2);
+  VECTOR_SUM(vs3, p,e3);
+
+  VECTOR_DIFF(vd1, p, e1);
+  VECTOR_DIFF(vd2, p, e2);
+  VECTOR_DIFF(vd3, p, e3);
+
+  double nx = MandelBulbDistanceEstimator(vs1, bulb_params) - MandelBulbDistanceEstimator(vd1, bulb_params);
+  double ny = MandelBulbDistanceEstimator(vs2, bulb_params) - MandelBulbDistanceEstimator(vd2, bulb_params);
+  double nz = MandelBulbDistanceEstimator(vs3, bulb_params) - MandelBulbDistanceEstimator(vd3, bulb_params);
+  VEC(normal,
+    nx,//DE( vector_sum(p,e1)) - DE(vector_diff(p,e1)), 
+    ny,//DE(vector_sum(p,e2)) - DE(vector_diff(p,e2)), 
+    nz//DE(vector_sum(p,e3)) - DE(vector_diff(p,e3)) 
+  );
+
   
   //normal = {DE(p+e1)-DE(p-e1), DE(p+e2)-DE(p-e2), DE(p+e3)-DE(p-e3)};//vec3(DE(p+e1)-DE(p-e1), DE(p+e2)-DE(p-e2), DE(p+e3)-DE(p-e3));
-  VEC(normal,
+  /*VEC(normal,
     MandelBulbDistanceEstimator(vector_sum(p,e1), bulb_params) - MandelBulbDistanceEstimator(vector_diff(p,e1), bulb_params), 
     MandelBulbDistanceEstimator(vector_sum(p,e2), bulb_params) - MandelBulbDistanceEstimator(vector_diff(p,e2), bulb_params), 
     MandelBulbDistanceEstimator(vector_sum(p,e3), bulb_params) - MandelBulbDistanceEstimator(vector_diff(p,e3), bulb_params) 
   );
+  */
+
   NORMALIZE(normal);
 }
 
@@ -61,12 +83,14 @@ inline void normal(const vec3 & p, vec3 & normal, const MandelBulbParams &bulb_p
 void rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &direction, double eps,
 	      pixelData& pix_data, const MandelBulbParams &bulb_params)
 {
+
   double dist = 0.0;
   double totalDist = 0.0;
   
   // We will adjust the minimum distance based on the current zoom
 
   double epsModified = 0.0;
+  
   
   int steps=0;
   vec3 p;
@@ -88,8 +112,8 @@ void rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &
       steps++;
     }
   while (dist > epsModified && totalDist <= render_params.maxDistance && steps < render_params.maxRaySteps);
+ 
   
-  //vec3 hitNormal; UNUSED???
 
   if (dist < epsModified) 
     {
@@ -105,6 +129,7 @@ void rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &
         p.y - direction.y * epsModified, 
         p.z - direction.z * epsModified
       };
+     
       normal(normPos, pix_data.normal, bulb_params);
     }
   else {
@@ -113,4 +138,6 @@ void rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &
   }
 
   //return dist;
+
+  
 }

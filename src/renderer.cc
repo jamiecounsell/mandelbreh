@@ -37,7 +37,6 @@ extern void   printProgress(double perc, double time, int frame);
 extern MandelBulbParams mandelBulb_params;
 
 #pragma acc routine seq
-
 extern void rayMarch (const RenderParams &render_params, const vec3 &from, const vec3  &to, 
   double eps, pixelData &pix_data, const MandelBulbParams &bulb_params);
 
@@ -79,8 +78,6 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
 
   #pragma acc kernels copy(image[0:height*width*3]) present_or_copyin(mandelBulb_params, width, height)
   {
-
-  
   
   #ifndef _OPENACC
   double time = getTime();
@@ -96,6 +93,9 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
       //for each column pixel in the row
     for(i = 0; i <width; i++)
     {
+
+      /*
+
       // get point on the 'far' plane
       // since we render one frame only, we can use the more specialized method
       UnProject(i, j, camera_params, farPoint);
@@ -116,6 +116,9 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
       image[k+2] = (unsigned char)(color.x * 255);
       image[k+1] = (unsigned char)(color.y * 255);
       image[k]   = (unsigned char)(color.z * 255);
+    
+      */
+
     }
 
     #ifndef _OPENACC
