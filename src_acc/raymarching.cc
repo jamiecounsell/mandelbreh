@@ -136,8 +136,7 @@ double rayMarch(const int maxRaySteps, const float maxDistance, const vec3 &from
         p.z - direction.z * epsModified
       };
 
-      vec3 norm;// = {pix_data.normal_x, pix_data.normal_y, pix_data.normal_z};
-      VEC(norm, pix_data.normal_x, pix_data.normal_y, pix_data.normal_z );
+      vec3 norm;
       normal(normPos, norm, bulb_params);
       pix_data.normal_x = norm.x;
       pix_data.normal_y = norm.y;

@@ -17,9 +17,6 @@
 extern MandelBulbParams mandelBulb_params;
 
 #pragma acc routine seq
-extern double DE(const vec3 &p, const MandelBulbParams &params);
-
-#pragma acc routine seq
 extern double rayMarch (const int maxRaySteps, const float maxDistance, const vec3 &from, 
   const vec3  &to, double eps, pixelData2 &pix_data, const MandelBulbParams &bulb_params);
 //extern double rayMarch (const RenderParams &render_params, const vec3 &from, const vec3  &to, double eps, pixelData &pix_data);
@@ -39,33 +36,37 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
 
   const int height = renderer_params.height;
   const int width  = renderer_params.width;
-
-  pixelData2 pix;
   
   #pragma acc enter data present_or_copyin(camera_params)
   #pragma acc enter data present_or_copyin(                        \
-                          camera_params.camPos[:3],      \
-                          camera_params.camTarget[:3],   \
-                          camera_params.camUp[:3],      \
-                          camera_params.matModelView[:16], \
-                          camera_params.matProjection[:16], \
-                          camera_params.matInvProjModel[:16], \
-                          camera_params.viewport[:4] \
+                          camera_params.camPos[0:3],      \
+                          camera_params.camTarget[0:3],   \
+                          camera_params.camUp[0:3],      \
+                          camera_params.matModelView[0:16], \
+                          camera_params.matProjection[0:16], \
+                          camera_params.matInvProjModel[0:16], \
+                          camera_params.viewport[0:4] \
                           )  
 
   #pragma acc enter data present_or_copyin(renderer_params)
   #pragma acc enter data present_or_copyin(                  \
-                          renderer_params.file_name[:80] \
+                          renderer_params.file_name[0:80] \
                           )
 
   #pragma acc kernels copy(image[0:height*width*3]) present_or_copyin(mandelBulb_params, width, height)
   {
 
+  
+  int asdad = 55;
+
   // pow function?
   const double eps = pow(10.0, renderer_params.detail); 
   double farPoint[3];
   vec3 to, from;
-  
+  pixelData2 pix = {true, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5};
+
+
+
   SET_DOUBLE_POINT(from, camera_params.camPos);
   
 
@@ -79,6 +80,7 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
       //for each column pixel in the row
     for(i = 0; i <width; i++)
     {
+      
       // get point on the 'far' plane
       // since we render one frame only, we can use the more specialized method
       //UnProject(i, j, camera_params, farPoint);
@@ -87,20 +89,23 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
       SUBTRACT_POINT(to, farPoint, camera_params.camPos);
       NORMALIZE(to);
       
+
       //render the pixel
       const int max_rs =  renderer_params.maxRaySteps;
       const float max_d = renderer_params.maxDistance;
-      rayMarch(max_rs, max_d, from, to, eps, pix, mandelBulb_params);
       
+      //rayMarch(max_rs, max_d, from, to, eps, pix, mandelBulb_params);
+          
       const int ct = renderer_params.colourType;
       const float br = renderer_params.brightness;
-      getColour(pix, ct, br, from, to, color);
+      //getColour(pix, ct, br, from, to, color);
         
       //save colour into texture
       k = (j * width + i)*3;
-      image[k+2] = (unsigned char)(color.x * 255);
-      image[k+1] = (unsigned char)(color.y * 255);
-      image[k]   = (unsigned char)(color.z * 255);
+      image[k+2] = (unsigned char)(33.0);//color.x * 255);
+      image[k+1] = (unsigned char)(222.0);//color.y * 255);
+      image[k]   = (unsigned char)(100.5);//color.z * 255);
+
     }
     //printProgress((j+1)/(double)height,getTime()-time, frame);
   }

@@ -37,22 +37,40 @@ int main(int argc, char** argv)
   int i;
   CameraParams    camera_params;
   RenderParams    renderer_params;
-  
+
   getParameters(argv[1], &camera_params, &renderer_params, &mandelBulb_params);
 
+  printf("%s\n", "hi1");
+
+
   int image_size = renderer_params.width * renderer_params.height;
+    printf("%s\n", "hi2");
+
   unsigned char *image = (unsigned char*)malloc(3*image_size*sizeof(unsigned char));
+    printf("%s\n", "hi3");
+
   init3D(&camera_params, &renderer_params);
+    printf("%s\n", "hi4");
+
   
   for (i = 0; i < 3; i++){
+
+    printf("%s\n", "hi5");
+
     char buf[15];
 
     sprintf(buf, "../frames/%05d.bmp", i);
+
+    printf("%s\n", "hi5");
 
     camera_params.camPos[0] = camera_params.camPos[0]-(0.01);
     camera_params.camPos[1] = camera_params.camPos[1]-(0.01);
     camera_params.camPos[2] = camera_params.camPos[2]-(0.01);
     renderFractal(camera_params, renderer_params, image, i);
+
+    printf("%s\n", "hi5");
+
+    
     saveBMP(buf, image, renderer_params.width, renderer_params.height);
   }
   printf("\n");
