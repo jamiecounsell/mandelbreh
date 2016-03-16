@@ -1,0 +1,18 @@
+all: serial
+
+VIDEO    = -DVIDEO
+CXX      =  g++
+FLAGS    = -O3 -Wall $(VIDEO)
+CFLAGS   = $(FLAGS)
+CXXFLAGS = $(FLAGS)
+LDFLAGS  = -lm
+
+PROGRAM_NAME=mandelbulb
+
+OBJS =  main.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o distance_est.o mandelbulb_dist_est.o raymarching.o renderer.o init3D.o
+
+serial: $(OBJS)
+	$(CXX) -o $@ $? $(CXXFLAGS) $(LDFLAGS)
+
+clean:
+	rm -f *.o mandelbulb *~
