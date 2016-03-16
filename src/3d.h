@@ -47,3 +47,4 @@ void   Translate(double *result, double x, double y, double z);
 //int    UnProject(double winX, double winY, CameraParams camP, double *obj);
 
 #endif
+

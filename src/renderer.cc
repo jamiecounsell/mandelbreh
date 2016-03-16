@@ -52,13 +52,6 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
 {
 
   
-  const double eps = pow(10.0, renderer_params.detail); 
-  double farPoint[3];
-  vec3 to, from;
-  
-  //from.SetDoublePoint(camera_params.camPos);
-  SET_DOUBLE_POINT(from, camera_params.camPos);
-  
   const int height = renderer_params.height;
   const int width  = renderer_params.width;
 
@@ -81,11 +74,20 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
 
   #pragma acc kernels copy(image[0:height*width*3]) present_or_copyin(mandelBulb_params, width, height)
   {
+    
   
   #ifndef _OPENACC
   double time = getTime();
   #endif
   
+  const double eps = pow(10.0, renderer_params.detail); 
+  double farPoint[3];
+  vec3 to, from;
+  
+  //from.SetDoublePoint(camera_params.camPos);
+  SET_DOUBLE_POINT(from, camera_params.camPos);
+
+
   pixelData pix_data;
 
   vec3 color;

@@ -25,7 +25,7 @@
 #include "3d.h"
 
 
-inline void MultiplyMatrixByVector(double *resultvector, const double *matrix, double *pvector)
+inline void MultiplyMatrixByVector(double resultvector[4], const double matrix[16], double pvector[4])
 {
   resultvector[0]=matrix[0]*pvector[0]+matrix[4]*pvector[1]+matrix[8]*pvector[2]+matrix[12]*pvector[3];
   resultvector[1]=matrix[1]*pvector[0]+matrix[5]*pvector[1]+matrix[9]*pvector[2]+matrix[13]*pvector[3];
@@ -35,7 +35,7 @@ inline void MultiplyMatrixByVector(double *resultvector, const double *matrix, d
 
 
 //---------------------------------------------------------------------------------------------
-//when projection and modelview matricies are static (computed only once, and camera does not move)
+//when projection and modelview matrices are static (computed only once, and camera does not move)
 #pragma acc routine seq
 int UnProject(double winX, double winY, const CameraParams camP, double obj[3])
 {
@@ -51,14 +51,16 @@ int UnProject(double winX, double winY, const CameraParams camP, double obj[3])
   //Objects coordinates
   MultiplyMatrixByVector(out, camP.matInvProjModel, in);
   
-  if(out[3]==0.0)
+  if(out[3]==0.0){
     return 0;
+  }
 
   out[3] = 1.0/out[3];
   obj[0] = out[0]*out[3];
   obj[1] = out[1]*out[3];
   obj[2] = out[2]*out[3];
   return 1;
+  
 }
 
 
