@@ -95,17 +95,7 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
 
 
   pixelData pix_data;
-  /*
-  pix_data.hit.x = 0.0;
-  pix_data.hit.y = 0.0;
-  pix_data.hit.z = 0.0;
-  pix_data.normal.x = 0.0;
-  pix_data.normal.y = 0.0;
-  pix_data.normal.z = 0.0;
-  pix_data.escaped = false;
-  */
-
-  vec3 color = {0.0, 50.5, 230.3};
+  vec3 color;
   
   int i,j,k;
   for(j = 0; j < height; j++)
@@ -122,7 +112,6 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
       
       // to = farPoint - camera_params.camPos
       SUBTRACT_POINT(to, farPoint, camera_params.camPos);//SubtractDoubleDouble(farPoint,camera_params.camPos);
-      
       NORMALIZE(to);
       
       //render the pixel
@@ -154,6 +143,8 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
     #endif
   }
 
-
 }//end pragma
+
+printf("\n rendering done:\n");
+
 }

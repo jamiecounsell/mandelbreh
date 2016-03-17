@@ -77,16 +77,9 @@ void getColour(const RenderParams &render_params, const vec3 &normal, const vec3
     // hitColor is corrupted at this point.. fine at end of call to lighting()
     // normal is fine
     //hitColor = hitColor * normal
-    //MULTIPLY_BY_VECTOR(hitColor, normal);
-
-
+    MULTIPLY_BY_VECTOR(hitColor, normal);
     VEC(hitColor, (hitColor.x + 1.0)/2.0, (hitColor.y + 1.0)/2.0, (hitColor.z + 1.0)/2.0 );
-	  VEC(hitColor, 
-          hitColor.x * render_params.brightness, 
-          hitColor.y * render_params.brightness, 
-          hitColor.z * render_params.brightness
-        );
-
+    MULTIPLY_BY_DOUBLE(hitColor, render_params.brightness);
 
 
 	  //gamma correction
