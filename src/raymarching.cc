@@ -86,15 +86,12 @@ void rayMarch(const RenderParams &render_params, const vec3 &from, const vec3  &
 //        vec3 &pd_hit, vec3 &pd_normal, bool pd_escaped, const MandelBulbParams &bulb_params)
 {
 
-
   double dist = 0.0;
   double totalDist = 0.0;
   
   // We will adjust the minimum distance based on the current zoom
-
   double epsModified = 0.0;
   
-   
   
   int steps=0;
   vec3 p;

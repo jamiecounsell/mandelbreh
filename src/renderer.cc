@@ -47,8 +47,10 @@ extern void rayMarch (const RenderParams &render_params, const vec3 &from, const
 
 
 #pragma acc routine seq
-extern void getColour(const pixelData &pixData, const int colourType, const float brightness,
-         const vec3 &from, const vec3  &direction, vec3 &result);
+extern void getColour(const RenderParams &render_params, const vec3 &normal, const vec3 &hit, const bool escaped,
+         //const int colourType, const float brightness
+         const vec3 &from, const vec3  &direction, vec3 &result
+         );
 //extern vec3 getColour(const pixelData &pixData, const RenderParams &render_params,
 //          const vec3 &from, const vec3  &direction);
 
@@ -56,7 +58,6 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
        unsigned char* image, int frame)
 {
 
-  
   const int height = renderer_params.height;
   const int width  = renderer_params.width;
 
@@ -94,8 +95,17 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
 
 
   pixelData pix_data;
+  /*
+  pix_data.hit.x = 0.0;
+  pix_data.hit.y = 0.0;
+  pix_data.hit.z = 0.0;
+  pix_data.normal.x = 0.0;
+  pix_data.normal.y = 0.0;
+  pix_data.normal.z = 0.0;
+  pix_data.escaped = false;
+  */
 
-  vec3 color;
+  vec3 color = {0.0, 50.5, 230.3};
   
   int i,j,k;
   for(j = 0; j < height; j++)
@@ -116,23 +126,27 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
       NORMALIZE(to);
       
       //render the pixel
-      //rayMarch(renderer_params, from, to, eps, pix_data.hit, pix_data.normal, pix_data.escaped, mandelBulb_params);
       rayMarch(renderer_params, from, to, eps, pix_data, mandelBulb_params);
 
-      
-      //get the colour at this pixel
-      //color = getColour(pix_data, renderer_params.colourType, renderer_params.brightness, from, to);
-      getColour(pix_data, renderer_params.colourType, renderer_params.brightness, from, to, color);  
+      vec3 pd_norm, pd_hit;//= {pix_data.hit.x, pix_data.normal.x, pix_data.hit.z};
+      //double orly = pix_data.normal.y;
+      //bool lol = pix_data.escaped;
+      VEC(pd_norm, pix_data.normal.x, pix_data.normal.y, pix_data.normal.z); 
+      VEC(pd_hit, pix_data.hit.x, pix_data.hit.y, pix_data.hit.z); 
 
-      /*
+      //get the colour at this pixel
+      getColour(renderer_params, pd_norm, pd_hit, pix_data.escaped, 
+        //renderer_params.colourType, renderer_params.brightness 
+        from, to, color
+        );  
+
+      
       //save colour into texture
       k = (j * width + i)*3;
       image[k+2] = (unsigned char)(color.x * 255);
       image[k+1] = (unsigned char)(color.y * 255);
       image[k]   = (unsigned char)(color.z * 255);
     
-      */
-
     }
 
     #ifndef _OPENACC
