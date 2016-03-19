@@ -133,7 +133,7 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
   vec3* color_ptr = (vec3*)malloc(sizeof(vec3));
 #endif
 
-#pragma acc data present_or_copyin(                        \
+#pragma acc data copyin(                        \
   fov,            \
   camPos[:3],      \
   camTarget[:3],   \
@@ -144,7 +144,7 @@ void renderFractal(const CameraParams &camera_params, const RenderParams &render
   viewport[:4] \
   )  
 
-#pragma acc data present_or_copyin(                  \
+#pragma acc data copyin(                  \
 fractalType, \
 colourType, \
 brightness, \
@@ -170,23 +170,22 @@ deviceptr(color_ptr)
   double farPoint[3];
   vec3 to, from;
 
-//from.SetDoublePoint(camera_params.camPos);
+  //from.SetDoublePoint(camera_params.camPos);
   SET_DOUBLE_POINT(from, camPos);
 
 
   pixelData pix_data;
-//vec3 color;
+  //vec3 color;
 
   int i,j,k;
   for(j = 0; j < height; j++)
   {
-//for each column pixel in the row
+  //for each column pixel in the row
     for(i = 0; i < width; i++)
     {
       // get point on the 'far' plane
       // since we render one frame only, we can use the more specialized method
       UnProject(i, j, viewport, matInvProjModel, farPoint);
-
 
       // to = farPoint - camera_params.camPos
       SUBTRACT_POINT(to, farPoint, camPos);
@@ -199,7 +198,6 @@ deviceptr(color_ptr)
 
       // We will adjust the minimum distance based on the current zoom
       double epsModified = 0.0;
-
 
       int steps=0;
       vec3 p;
@@ -270,8 +268,6 @@ deviceptr(color_ptr)
 
         NORMALIZE(pix_data.normal);
         /* END INLINE NORMAL */
-
-
       }
       else {
         //we have the background colour
@@ -310,7 +306,6 @@ deviceptr(color_ptr)
         color_ptr->y = CamLight.y * color_ptr->y * ambient;
         color_ptr->z = CamLight.z * color_ptr->z * ambient;
 
-
         //add normal based colouring
         if(colourType == 0 || colourType == 1)
         {
@@ -338,9 +333,9 @@ deviceptr(color_ptr)
       }
       else {
         //we have the background colour
-        color_ptr->x = backColor.x;
-        color_ptr->y = backColor.y;
-        color_ptr->z = backColor.z;
+        color_ptr->x = 1;//backColor.x;
+        color_ptr->y = 1;//backColor.y;
+        color_ptr->z = 1;//backColor.z;
 
       }
 
