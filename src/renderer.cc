@@ -36,36 +36,35 @@ extern void   printProgress( double perc, double time, int frame );
 
 #pragma acc routine seq
 extern void rayMarch(const int maxRaySteps, const float maxDistance,
- const float escape_time, const float power, const int num_iter,
- const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data);
-//extern void rayMarch (const RenderParams render_params, const MandelBulbParams bulb_params,
-//          const vec3 &from, const vec3  &to, double eps, pixelData &pix_data);
+  const float escape_time, const float power, const int num_iter,
+  const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data);
 
 #pragma acc routine seq
-extern void getColour(const pixelData &pixData, const int colourType, const float brightness,//const RenderParams render_params,
+extern void getColour(const pixelData &pixData, const int colourType, const float brightness,
 		      const vec3 &from, const vec3  &direction, vec3 &result);
 
 #pragma acc routine seq
 extern void UnProject(double winX, double winY, const int viewport[4], const double matInvProjModel[16], vec3 &obj);
-//extern void UnProject(double winX, double winY, CameraParams camP, vec3 &obj);//double *obj);
+
 
 void renderFractal(const CameraParams camera_params, const RenderParams renderer_params, 
                     const MandelBulbParams bulb_params, unsigned char* image, int frame)
 {
 
+  // DIRECTION, COLOR, PIXEL ARRAYS
   int size = renderer_params.width * renderer_params.height;
-
   #ifdef _OPENACC
-    vec3* to_arr = (vec3*)acc_malloc(size * sizeof(vec3));
-    pixelData* pix_arr = (pixelData*)acc_malloc(size * sizeof(pixelData));
-    vec3* color_arr = (vec3*)acc_malloc(size * sizeof(vec3));
+    vec3* direction = (vec3*)acc_malloc(size * sizeof(vec3));
+    pixelData* pixel = (pixelData*)acc_malloc(size * sizeof(pixelData));
+    vec3* color = (vec3*)acc_malloc(size * sizeof(vec3));
   #else
-    vec3* to_arr = (vec3*)malloc(size * sizeof(vec3));
-    pixelData* pix_arr = (pixelData*)malloc(size * sizeof(pixelData));
-    vec3* color_arr = (vec3*)malloc(size * sizeof(vec3));
+    vec3* direction = (vec3*)malloc(size * sizeof(vec3));
+    pixelData* pixel = (pixelData*)malloc(size * sizeof(pixelData));
+    vec3* color = (vec3*)malloc(size * sizeof(vec3));
   #endif
 
-const int fractalType = renderer_params.fractalType;
+  // RENDERER PARAMS
+  const int fractalType = renderer_params.fractalType;
   const int colourType = renderer_params.colourType;
   const float brightness = renderer_params.brightness;
   const int height = renderer_params.height;
@@ -74,6 +73,7 @@ const int fractalType = renderer_params.fractalType;
   const int maxRaySteps = renderer_params.maxRaySteps;
   const float maxDistance = renderer_params.maxDistance;
 
+  // CAMERA PARAMS
   const double camPos[3] = {camera_params.camPos[0], camera_params.camPos[1], camera_params.camPos[2]} ;
   const double camTarget[3] = {camera_params.camTarget[0],camera_params.camTarget[1],camera_params.camTarget[2]};
   const double camUp[3] = { camera_params.camUp[0], camera_params.camUp[1], camera_params.camUp[2] };
@@ -143,44 +143,14 @@ const int fractalType = renderer_params.fractalType;
     camera_params.viewport[3]
   };
 
+  // MANDELBULB PARAMS
   const  float escape_time =   bulb_params.escape_time;
   const float power =  bulb_params.power;
   const int num_iter =  bulb_params.num_iter; 
 
 
- /*
+  // DATA COPY
   #pragma acc data copy(image[0:size*3]),   \
-  pcopyin(                 \
-    camera_params, \
-    camera_params.camPos[:3],      \
-    camera_params.camTarget[:3],   \
-    camera_params.camUp[:3],      \
-    camera_params.fov,            \
-    camera_params.matModelView[:16], \
-    camera_params.matProjection[:16], \
-    camera_params.matInvProjModel[:16], \
-    camera_params.viewport[:4], \
-                  \
-    renderer_params, \
-    renderer_params.fractalType, \
-    renderer_params.colourType, \
-    renderer_params.brightness, \
-    renderer_params.height, \
-    renderer_params.width, \
-    renderer_params.detail, \
-    renderer_params.maxRaySteps, \
-    renderer_params.maxDistance, \
-                  \
-    bulb_params, \
-    bulb_params.escape_time, \
-    bulb_params.power, \
-    bulb_params.num_iter \
-  ),            \
-    deviceptr(to_arr, pix_arr, color_arr)
-  {
-*/
-
-#pragma acc data copy(image[0:size*3]),   \
   pcopyin(                 \
     camPos[:3],      \
     camTarget[:3],   \
@@ -204,17 +174,17 @@ const int fractalType = renderer_params.fractalType;
     power, \
     num_iter \
   ),            \
-    deviceptr(to_arr, pix_arr, color_arr)
+    deviceptr(direction, pixel, color)
   {
 
-  const double eps = pow(10.0, detail); 
-  const vec3 from = {camPos[0], camPos[1], camPos[2]};
-  
-
+  // BEGIN DEVICE DATA REGION
     
   #ifndef _OPENACC
   double time = getTime();
   #endif
+
+  const double eps = pow(10.0, detail); 
+  const vec3 from = {camPos[0], camPos[1], camPos[2]};
 
   // for some reason needed for compiler to parallelize loops
   const int cheight = height;
@@ -224,45 +194,41 @@ const int fractalType = renderer_params.fractalType;
   #pragma acc parallel 
   #pragma acc loop
   for(j = 0; j < cheight; j++)
+  {
+    #pragma acc loop
+    for(i = 0; i < cwidth; i++)
     {
-      #pragma acc loop
-      for(i = 0; i < cwidth; i++)
-	    {
+      
+      int k, l;
+      l = (j * width + i );
+
+  	  // get point on the 'far' plane
+      UnProject(i, j, viewport, matInvProjModel, direction[l]);//farPoint);
+  	  
+      SUBTRACT_DOUBLE_ARRAY(direction[l], camPos);
+      NORMALIZE( direction[l] );	  
+  	  
+      //render the pixel
+      rayMarch(maxRaySteps, maxDistance, escape_time, power, num_iter, from, direction[l], eps, pixel[l]);     
+
+  	  //get the colour at this pixel
+      getColour(pixel[l], colourType, brightness, from, direction[l], color[l]);
         
-        int k, l;
-        l = (j * width + i );
- 
-    	  // get point on the 'far' plane
-        UnProject(i, j, viewport, matInvProjModel, to_arr[l]);//farPoint);
-    	  
-        to_arr[l].x = to_arr[l].x - camera_params.camPos[0];
-        to_arr[l].y = to_arr[l].y - camera_params.camPos[1];
-        to_arr[l].z = to_arr[l].z - camera_params.camPos[2];
+  	  //save colour into texture
+  	  k = (j * width + i)*3;
+  	  image[k+2] = (unsigned char)(color[l].x * 255);
+  	  image[k+1] = (unsigned char)(color[l].y * 255);
+  	  image[k]   = (unsigned char)(color[l].z * 255);
 
-
-        NORMALIZE( to_arr[l] );	  
-    	  
-        //render the pixel
-        rayMarch(maxRaySteps, maxDistance, escape_time, power, num_iter, from, to_arr[l], eps, pix_arr[l]);     
-
-    	  //get the colour at this pixel
-        getColour(pix_arr[l], colourType, brightness, from, to_arr[l], color_arr[l]);
-          
-    	  //save colour into texture
-    	  k = (j * width + i)*3;
-    	  image[k+2] = (unsigned char)(color_arr[l].x * 255);
-    	  image[k+1] = (unsigned char)(color_arr[l].y * 255);
-    	  image[k]   = (unsigned char)(color_arr[l].z * 255);
-
-	    }
+    }
 
       #ifndef _OPENACC
       printProgress((j+1)/(double)height,getTime()-time, frame);
       #endif
       
-    }
+  }
 
-  }// end device data region
+  }// END DEVICE DATA REGION
 
   printf("\n rendering done:\n");
 }

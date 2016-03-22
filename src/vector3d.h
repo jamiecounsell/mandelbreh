@@ -24,6 +24,8 @@ typedef struct
   p.z=(v[2])-(u[2]);				\
 }
 
+#define SUBTRACT_DOUBLE_ARRAY(v, d) {v.x = v.x - d[0]; v.y = v.y - d[1]; v.z = v.z - d[2];  }
+
 #define SQUARE(p)\
 	{\
 		p.x = p.x * p.x; \
@@ -76,8 +78,6 @@ inline vec3 vector_diff(vec3 v1, vec3 v2){
 
 #define VECTOR_SUM(r, v1, v2) {  r.x = v1.x + v2.x; r.y = v1.y + v2.y; r.z = v1.z + v2.z; }
 #define VECTOR_DIFF(r, v1, v2) {  r.x = v1.x - v2.x; r.y = v1.y - v2.y; r.z = v1.z - v2.z; }
-
-//#define VECTOR_CLAMP(v, min, max) { v.x = clamp(v.x,min,max); v.y = clamp(v.y,min,max); v.z = clamp(v.z,min,max); }
 
 inline void v_clamp(vec3 &v, double min, double max) 
 {

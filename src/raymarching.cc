@@ -154,8 +154,6 @@ void rayMarch(const int maxRaySteps, const float maxDistance,
       pix_data.normal.z = MandelBulbDistanceEstimator(vs3, escape_time, power, num_iter)-MandelBulbDistanceEstimator(vd3, escape_time, power, num_iter);
       
       NORMALIZE(pix_data.normal);
-      //normal(bulb_params, normPos, pix_data.normal);
-
     }
   else 
     //we have the background colour

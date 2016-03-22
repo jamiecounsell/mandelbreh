@@ -71,9 +71,7 @@ void getColour(const pixelData &pixData, const int colourType, const float brigh
 
     	  //gamma correction
     	  v_clamp(hitColor, 0.0, 1.0);
-    	  hitColor.x = hitColor.x * hitColor.x;
-        hitColor.y = hitColor.y * hitColor.y;
-        hitColor.z = hitColor.z * hitColor.z;
+        SQUARE(hitColor);
 
     	}
           if(colourType == 1)
