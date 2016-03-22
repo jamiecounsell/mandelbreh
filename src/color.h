@@ -23,6 +23,11 @@
 
 #include "vector3d.h"
 
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
+
+
 typedef struct
 {
   bool escaped;

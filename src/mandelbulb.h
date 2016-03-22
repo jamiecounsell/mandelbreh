@@ -21,6 +21,11 @@
 #ifndef MANDELBULB_H
 #define MANDELBULB_H
 
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
+
+
 typedef struct {
   float escape_time;
   float power;

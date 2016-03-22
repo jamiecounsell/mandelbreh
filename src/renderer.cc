@@ -96,8 +96,8 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
   const vec3 from = {camera_params.camPos[0], camera_params.camPos[1], camera_params.camPos[2]};
   double farPoint[3];
   
-  //const int height = renderer_params.height;
-  //const int width  = renderer_params.width;
+  const int height = renderer_params.height;
+  const int width  = renderer_params.width;
     
   #ifndef _OPENACC
   double time = getTime();
@@ -106,20 +106,20 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
   int i,j;
   #pragma acc parallel //loop collapse(2)
   #pragma acc loop
-  for(j = 0; j < renderer_params.height; j++)
+  for(j = 0; j < height; j++)
     {
       #pragma acc loop
-      //for each column pixel in the row
-      for(i = 0; i < renderer_params.width; i++)
+      for(i = 0; i < width; i++)
 	    {
         
 
         int k, l;
-        l = (j * renderer_params.width + i );
+        l = (j * width + i );
  
     	  // get point on the 'far' plane
         UnProject(i, j, camera_params, farPoint);
     	  
+        
         SUBTRACT_POINT(to_arr[l], farPoint, camera_params.camPos);
         NORMALIZE( to_arr[l] );	  
     	  
@@ -136,7 +136,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
     	  image[k+1] = (unsigned char)(color_arr[l].y * 255);
     	  image[k]   = (unsigned char)(color_arr[l].z * 255);
 
-	   }
+	    }
 
       #ifndef _OPENACC
       printProgress((j+1)/(double)height,getTime()-time);
@@ -144,7 +144,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
       
     }
 
-  }// end device region
+  }// end device data region
 
   printf("\n rendering done:\n");
 }

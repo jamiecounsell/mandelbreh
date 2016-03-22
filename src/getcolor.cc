@@ -24,6 +24,11 @@
 #include <cmath>
 #include <algorithm>
 
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
+
+
 //using namespace std;
 
 //---lightning and colouring---------

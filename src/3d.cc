@@ -24,6 +24,11 @@
 #include <string.h>
 #include "3d.h"
 
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
+
+
 inline void MultiplyMatrixByVector(double *resultvector, const double *matrix, double *pvector)
 {
   resultvector[0]=matrix[0]*pvector[0]+matrix[4]*pvector[1]+matrix[8]*pvector[2]+matrix[12]*pvector[3];
