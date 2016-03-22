@@ -156,6 +156,6 @@ void rayMarch(const int maxRaySteps, const float maxDistance,
       NORMALIZE(pix_data.normal);
     }
   else 
-    //we have the background colour
+    //we have the background color
     pix_data.escaped = true;
 }

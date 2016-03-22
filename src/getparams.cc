@@ -95,7 +95,7 @@ void getParameters(char *filename, CameraParams *camP, RenderParams *renP, Mande
 	  
 	  //COLORING 
 	case 8:
-	  sscanf(buf, "%d", &renP->colourType);
+	  sscanf(buf, "%d", &renP->colorType);
 	  break;
 	case 9:
     // brightness

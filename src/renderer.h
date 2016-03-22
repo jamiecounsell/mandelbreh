@@ -30,7 +30,7 @@
 typedef struct 
 {
   int fractalType;
-  int colourType;
+  int colorType;
   int super_sampling;
   float brightness;
   int width;

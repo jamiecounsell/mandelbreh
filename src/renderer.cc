@@ -40,7 +40,7 @@ extern void rayMarch(const int maxRaySteps, const float maxDistance,
   const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data);
 
 #pragma acc routine seq
-extern void getColour(const pixelData &pixData, const int colourType, const float brightness,
+extern void getcolor(const pixelData &pixData, const int colorType, const float brightness,
 		      const vec3 &from, const vec3  &direction, vec3 &result);
 
 #pragma acc routine seq
@@ -64,8 +64,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
   #endif
 
   // RENDERER PARAMS
-  const int fractalType = renderer_params.fractalType;
-  const int colourType = renderer_params.colourType;
+  const int colorType = renderer_params.colorType;
   const float brightness = renderer_params.brightness;
   const int height = renderer_params.height;
   const int width  = renderer_params.width;
@@ -75,47 +74,6 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
 
   // CAMERA PARAMS
   const double camPos[3] = {camera_params.camPos[0], camera_params.camPos[1], camera_params.camPos[2]} ;
-  const double camTarget[3] = {camera_params.camTarget[0],camera_params.camTarget[1],camera_params.camTarget[2]};
-  const double camUp[3] = { camera_params.camUp[0], camera_params.camUp[1], camera_params.camUp[2] };
-  const double fov = camera_params.fov;
-  const double matModelView[16] = 
-  {
-    camera_params.matModelView[0],
-    camera_params.matModelView[1],
-    camera_params.matModelView[2],
-    camera_params.matModelView[3],
-    camera_params.matModelView[4],
-    camera_params.matModelView[5],
-    camera_params.matModelView[6],
-    camera_params.matModelView[7],
-    camera_params.matModelView[8],
-    camera_params.matModelView[9],
-    camera_params.matModelView[10],
-    camera_params.matModelView[11],
-    camera_params.matModelView[12],
-    camera_params.matModelView[13],
-    camera_params.matModelView[14],
-    camera_params.matModelView[15]
-  };
-  const double matProjection[16] =
-  {
-    camera_params.matProjection[0],
-    camera_params.matProjection[1],
-    camera_params.matProjection[2],
-    camera_params.matProjection[3],
-    camera_params.matProjection[4],
-    camera_params.matProjection[5],
-    camera_params.matProjection[6],
-    camera_params.matProjection[7],
-    camera_params.matProjection[8],
-    camera_params.matProjection[9],
-    camera_params.matProjection[10],
-    camera_params.matProjection[11],
-    camera_params.matProjection[12],
-    camera_params.matProjection[13],
-    camera_params.matProjection[14],
-    camera_params.matProjection[15]
-  };
   const double matInvProjModel[16] =
   {
     camera_params.matInvProjModel[0],
@@ -153,16 +111,10 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
   #pragma acc data copy(image[0:size*3]),   \
   pcopyin(                 \
     camPos[:3],      \
-    camTarget[:3],   \
-    camUp[:3],      \
-    fov,            \
-    matModelView[:16], \
-    matProjection[:16], \
     matInvProjModel[:16], \
     viewport[:4], \
                   \
-    fractalType, \
-    colourType, \
+    colorType, \
     brightness, \
     height, \
     width, \
@@ -211,10 +163,10 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
       //render the pixel
       rayMarch(maxRaySteps, maxDistance, escape_time, power, num_iter, from, direction[l], eps, pixel[l]);     
 
-  	  //get the colour at this pixel
-      getColour(pixel[l], colourType, brightness, from, direction[l], color[l]);
+  	  //get the color at this pixel
+      getcolor(pixel[l], colorType, brightness, from, direction[l], color[l]);
         
-  	  //save colour into texture
+  	  //save color into texture
   	  k = (j * width + i)*3;
   	  image[k+2] = (unsigned char)(color[l].x * 255);
   	  image[k+1] = (unsigned char)(color[l].y * 255);

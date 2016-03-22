@@ -46,14 +46,14 @@ inline void lighting(const vec3 &n, const vec3 &color, const vec3 &pos, const ve
 }
 
 #pragma acc routine seq
-void getColour(const pixelData &pixData, const int colourType, const float brightness, //const RenderParams render_params,
+void getcolor(const pixelData &pixData, const int colorType, const float brightness, //const RenderParams render_params,
 	       const vec3 &from, const vec3  &direction, vec3 &result)
 {
 
   vec3 baseColor = {1.0, 1.0, 1.0};
   vec3 backColor = {0.4, 0.4, 0.4};
 
-  //colouring and lightning
+  //coloring and lightning
   vec3 hitColor =  {baseColor.x, baseColor.y, baseColor.z};
   
   if (pixData.escaped == false) 
@@ -61,8 +61,8 @@ void getColour(const pixelData &pixData, const int colourType, const float brigh
       //apply lighting
       lighting(pixData.normal, hitColor, pixData.hit, direction, hitColor);
       
-      //add normal based colouring
-      if(colourType == 0 || colourType == 1)
+      //add normal based coloring
+      if(colorType == 0 || colorType == 1)
     	{
 
         hitColor.x = (hitColor.x * pixData.normal.x + 1.0)/2.0 * brightness;
@@ -74,7 +74,7 @@ void getColour(const pixelData &pixData, const int colourType, const float brigh
         SQUARE(hitColor);
 
     	}
-          if(colourType == 1)
+          if(colorType == 1)
     	{
     	  //"swap" colors
     	  double t = hitColor.x;
@@ -84,7 +84,7 @@ void getColour(const pixelData &pixData, const int colourType, const float brigh
       
   }
   else {
-    //we have the background colour
+    //we have the background color
     hitColor = backColor;
   }
   
