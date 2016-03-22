@@ -22,7 +22,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include "camera.h"
 #include "3d.h"
+#include "vector3d.h"
 
 #ifdef _OPENACC
 #include <openacc.h>
@@ -40,7 +42,7 @@ inline void MultiplyMatrixByVector(double *resultvector, const double *matrix, d
 //---------------------------------------------------------------------------------------------
 //when projection and modelview matricies are static (computed only once, and camera does not mover)
 #pragma acc routine seq
-void UnProject(double winX, double winY, CameraParams camP, double *obj)
+void UnProject(double winX, double winY, CameraParams camP, vec3 &obj)//double *obj)
 {
   
   //Transformation vectors
@@ -60,9 +62,9 @@ void UnProject(double winX, double winY, CameraParams camP, double *obj)
   }else{
 
     out[3] = 1.0/out[3];
-    obj[0] = out[0]*out[3];
-    obj[1] = out[1]*out[3];
-    obj[2] = out[2]*out[3];
+    obj.x/*[0]*/ = out[0]*out[3];
+    obj.y/*[1]*/ = out[1]*out[3];
+    obj.z/*[2]*/ = out[2]*out[3];
 
     //return 1;
   }

@@ -43,7 +43,7 @@ extern void getColour(const pixelData &pixData, const RenderParams render_params
 		      const vec3 &from, const vec3  &direction, vec3 &result);
 
 #pragma acc routine seq
-extern void UnProject(double winX, double winY, CameraParams camP, double *obj);
+extern void UnProject(double winX, double winY, CameraParams camP, vec3 &obj);//double *obj);
 
 void renderFractal(const CameraParams camera_params, const RenderParams renderer_params, 
                     const MandelBulbParams bulb_params, unsigned char* image)
@@ -63,7 +63,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
 
  
   #pragma acc data copy(image[0:size*3]),   \
-  copyin(                 \
+  pcopyin(                 \
     camera_params, \
     camera_params.camPos[:3],      \
     camera_params.camTarget[:3],   \
@@ -94,7 +94,10 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
 
   const double eps = pow(10.0, renderer_params.detail); 
   const vec3 from = {camera_params.camPos[0], camera_params.camPos[1], camera_params.camPos[2]};
-  double farPoint[3];
+  
+  //farpoint causes problems with sharing
+  //only ever used to subtract from to_arr, so just get rid of it
+  //double farPoint[3];
   
   const int height = renderer_params.height;
   const int width  = renderer_params.width;
@@ -112,23 +115,26 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
       for(i = 0; i < width; i++)
 	    {
         
-
         int k, l;
         l = (j * width + i );
  
     	  // get point on the 'far' plane
-        UnProject(i, j, camera_params, farPoint);
+        UnProject(i, j, camera_params, to_arr[l]);//farPoint);
     	  
         
-        SUBTRACT_POINT(to_arr[l], farPoint, camera_params.camPos);
+        //SUBTRACT_POINT(to_arr[l], farPoint, camera_params.camPos);
+        to_arr[l].x = to_arr[l].x - camera_params.camPos[0];
+        to_arr[l].y = to_arr[l].y - camera_params.camPos[1];
+        to_arr[l].z = to_arr[l].z - camera_params.camPos[2];
+
+
         NORMALIZE( to_arr[l] );	  
     	  
         //render the pixel
-    	  
-        rayMarch(renderer_params, bulb_params, from, to_arr[l], eps, pix_arr[l]);  	  
+        //rayMarch(renderer_params, bulb_params, from, to_arr[l], eps, pix_arr[l]);  	  
       
     	  //get the colour at this pixel
-    	  getColour(pix_arr[l], renderer_params, from, to_arr[l], color_arr[l]);
+    	  //getColour(pix_arr[l], renderer_params, from, to_arr[l], color_arr[l]);
           
     	  //save colour into texture
     	  k = (j * width + i)*3;
