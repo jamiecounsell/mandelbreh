@@ -24,8 +24,7 @@
 #include <string.h>
 #include "3d.h"
 
-
-inline void MultiplyMatrixByVector(double resultvector[4], const double matrix[16], double pvector[4])
+inline void MultiplyMatrixByVector(double *resultvector, const double *matrix, double *pvector)
 {
   resultvector[0]=matrix[0]*pvector[0]+matrix[4]*pvector[1]+matrix[8]*pvector[2]+matrix[12]*pvector[3];
   resultvector[1]=matrix[1]*pvector[0]+matrix[5]*pvector[1]+matrix[9]*pvector[2]+matrix[13]*pvector[3];
@@ -33,37 +32,35 @@ inline void MultiplyMatrixByVector(double resultvector[4], const double matrix[1
   resultvector[3]=matrix[3]*pvector[0]+matrix[7]*pvector[1]+matrix[11]*pvector[2]+matrix[15]*pvector[3];
 }
 
-
 //---------------------------------------------------------------------------------------------
-//when projection and modelview matrices are static (computed only once, and camera does not move)
-//int UnProject(int ix, int iy, const CameraParams camP, double* obj)
+//when projection and modelview matricies are static (computed only once, and camera does not mover)
 #pragma acc routine seq
-int UnProject(int ix, int iy, const int viewport[4], const double matInvProjModel[16], double* obj)
+void UnProject(double winX, double winY, CameraParams camP, double *obj)
 {
-  double winX = (double) ix;
-  double winY = (double) iy;
-
+  
   //Transformation vectors
   double in[4], out[4];
   
   //Transformation of normalized coordinates between -1 and 1
-  in[0]=(winX-(double)(viewport[0]))/(double)(viewport[2])*2.0-1.0;
-  in[1]=(winY-(double)(viewport[1]))/(double)(viewport[3])*2.0-1.0;
+  in[0]=(winX-(double)(camP.viewport[0]))/(double)(camP.viewport[2])*2.0-1.0;
+  in[1]=(winY-(double)(camP.viewport[1]))/(double)(camP.viewport[3])*2.0-1.0;
   in[2]=2.0-1.0;
   in[3]=1.0;
   
   //Objects coordinates
-  MultiplyMatrixByVector(out, matInvProjModel, in);
+  MultiplyMatrixByVector(out, camP.matInvProjModel, in);
   
   if(out[3]==0.0){
-    return 0;
-  }
+    //return 0;
+  }else{
 
-  out[3] = 1.0/out[3];
-  obj[0] = out[0]*out[3];
-  obj[1] = out[1]*out[3];
-  obj[2] = out[2]*out[3];
-  return 1;
+    out[3] = 1.0/out[3];
+    obj[0] = out[0]*out[3];
+    obj[1] = out[1]*out[3];
+    obj[2] = out[2]*out[3];
+
+    //return 1;
+  }
 
 }
 
@@ -251,6 +248,7 @@ void MultiplyMatrices(double *result, const double *matrix1, const double *matri
     matrix1[11]*matrix2[14]+
     matrix1[15]*matrix2[15];
 }
+
 
 #define SWAP_ROWS(a, b) { double *_tmp = a; (a)=(b); (b)=_tmp; }
 #define MAT(m,r,c) (m)[(c)*4+(r)]

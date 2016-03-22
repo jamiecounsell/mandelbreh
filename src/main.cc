@@ -27,14 +27,16 @@
 void getParameters(char *filename, CameraParams *camera_params, RenderParams *renderer_params,
 		   MandelBulbParams *mandelBulb_paramsP);
 void init3D       (CameraParams *camera_params, const RenderParams *renderer_params);
-void renderFractal(const CameraParams &camera_params, const RenderParams &renderer_params, unsigned char* image, int frame);
+
+void renderFractal(const CameraParams camera_params, const RenderParams renderer_params, 
+                  const MandelBulbParams bulb_params, unsigned char* image);
+
 void saveBMP      (const char* filename, const unsigned char* image, int width, int height);
 
 MandelBulbParams mandelBulb_params;
 
 int main(int argc, char** argv)
 {
-  int i;
   CameraParams    camera_params;
   RenderParams    renderer_params;
   
@@ -42,26 +44,14 @@ int main(int argc, char** argv)
 
   int image_size = renderer_params.width * renderer_params.height;
   unsigned char *image = (unsigned char*)malloc(3*image_size*sizeof(unsigned char));
-  init3D(&camera_params, &renderer_params);
-  camera_params.camPos[0] = camera_params.camPos[0];
-  camera_params.camPos[1] = camera_params.camPos[1];
-  camera_params.camPos[2] = camera_params.camPos[2];
-  for (i = 0; i < 1; i++){
-    char buf[15];
-    printf("Computing frame %d...\n", i);
-    sprintf(buf, "../frames/%05d.bmp", i);
 
-    camera_params.camPos[0] = camera_params.camPos[0]-(0.01);
-    camera_params.camPos[1] = camera_params.camPos[1]-(0.01);
-    camera_params.camPos[2] = camera_params.camPos[2]-(0.01);
-    renderFractal(camera_params, renderer_params, image, i);
-    saveBMP(buf, image, renderer_params.width, renderer_params.height);
-  }
-  printf("\n");
+  init3D(&camera_params, &renderer_params);
+
+  renderFractal(camera_params, renderer_params, mandelBulb_params, image);
+  
+  saveBMP(renderer_params.file_name, image, renderer_params.width, renderer_params.height);
+  
   free(image);
-  #ifdef VIDEO
-    system("./genvideo.sh");
-  #endif
 
   return 0;
 }

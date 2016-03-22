@@ -37,4 +37,3 @@ typedef struct
 } RenderParams;
 
 #endif
-

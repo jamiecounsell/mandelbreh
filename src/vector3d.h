@@ -79,11 +79,11 @@ inline vec3 vector_diff(vec3 v1, vec3 v2){
 
 //#define VECTOR_CLAMP(v, min, max) { v.x = clamp(v.x,min,max); v.y = clamp(v.y,min,max); v.z = clamp(v.z,min,max); }
 
-inline void v_clamp(vec3* v, double min, double max) 
+inline void v_clamp(vec3 &v, double min, double max) 
 {
-  v->x = clamp(v->x,min,max);
-  v->y = clamp(v->y,min,max);
-  v->z = clamp(v->z,min,max);
+  v.x = clamp(v.x,min,max);
+  v.y = clamp(v.y,min,max);
+  v.z = clamp(v.z,min,max);
 }
 
 

@@ -22,7 +22,7 @@
 #include <string.h>
 #include <math.h>
 
-void printProgress( double perc, double time , int frame)
+void printProgress( double perc, double time )
 {
   static char delete_space[80];
   static char * OutputString;
@@ -34,8 +34,8 @@ void printProgress( double perc, double time , int frame)
   int min = t/60;
   sec = t%60;
   
-  OutputString = (char*)"*** completed % 5.2f%s of frame %d ---  total time = %02d:%02d:%02d   % e (s)";
-  sprintf(delete_space, OutputString, perc, "%%", frame, hr, min, sec, time);
+  OutputString = (char*)"*** completed % 5.2f%s ---  cum. time = %02d:%02d:%02d   % e (s)";
+  sprintf(delete_space, OutputString, perc, "%%", hr, min, sec, time);
 
   fprintf( stderr, delete_space);
   for ( unsigned int i = 0; i < strlen(delete_space); i++)
