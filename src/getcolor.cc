@@ -29,14 +29,6 @@
 #endif
 
 
-//using namespace std;
-
-//---lightning and colouring---------
-
-//-----------------------------------
-
-//-----------------------------------
-
 inline void lighting(const vec3 &n, const vec3 &color, const vec3 &pos, const vec3 &direction,  vec3 &outV)
 {
   vec3 CamLight = { 1.0, 1.0, 1.0};
@@ -65,33 +57,34 @@ void getColour(const pixelData &pixData, const int colourType, const float brigh
   vec3 hitColor =  {baseColor.x, baseColor.y, baseColor.z};
   
   if (pixData.escaped == false) 
-    {
+  {
       //apply lighting
       lighting(pixData.normal, hitColor, pixData.hit, direction, hitColor);
       
       //add normal based colouring
       if(colourType == 0 || colourType == 1)
-	{
+    	{
 
-    hitColor.x = (hitColor.x * pixData.normal.x + 1.0)/2.0 * brightness;
-    hitColor.y = (hitColor.y * pixData.normal.y + 1.0)/2.0 * brightness;
-    hitColor.z = (hitColor.z * pixData.normal.z + 1.0)/2.0 * brightness;
+        hitColor.x = (hitColor.x * pixData.normal.x + 1.0)/2.0 * brightness;
+        hitColor.y = (hitColor.y * pixData.normal.y + 1.0)/2.0 * brightness;
+        hitColor.z = (hitColor.z * pixData.normal.z + 1.0)/2.0 * brightness;
 
-	  //gamma correction
-	  v_clamp(hitColor, 0.0, 1.0);
-	  hitColor.x = hitColor.x * hitColor.x;
-    hitColor.y = hitColor.y * hitColor.y;
-    hitColor.z = hitColor.z * hitColor.z;
+    	  //gamma correction
+    	  v_clamp(hitColor, 0.0, 1.0);
+    	  hitColor.x = hitColor.x * hitColor.x;
+        hitColor.y = hitColor.y * hitColor.y;
+        hitColor.z = hitColor.z * hitColor.z;
 
-	}
-      if(colourType == 1)
-	{
-	  //"swap" colors
-	  double t = hitColor.x;
-	  hitColor.x = hitColor.z;
-	  hitColor.z = t;
-	}
-    }
+    	}
+          if(colourType == 1)
+    	{
+    	  //"swap" colors
+    	  double t = hitColor.x;
+    	  hitColor.x = hitColor.z;
+    	  hitColor.z = t;
+    	}
+      
+  }
   else {
     //we have the background colour
     hitColor = backColor;
@@ -101,5 +94,4 @@ void getColour(const pixelData &pixData, const int colourType, const float brigh
   result.y = hitColor.y;
   result.z = hitColor.z;
 
-  //return hitColor;
 }

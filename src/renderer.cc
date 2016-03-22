@@ -32,7 +32,7 @@
 #endif
 
 extern double getTime();
-extern void   printProgress( double perc, double time );
+extern void   printProgress( double perc, double time, int frame );
 
 #pragma acc routine seq
 extern void rayMarch(const int maxRaySteps, const float maxDistance,
@@ -50,7 +50,7 @@ extern void UnProject(double winX, double winY, const int viewport[4], const dou
 //extern void UnProject(double winX, double winY, CameraParams camP, vec3 &obj);//double *obj);
 
 void renderFractal(const CameraParams camera_params, const RenderParams renderer_params, 
-                    const MandelBulbParams bulb_params, unsigned char* image)
+                    const MandelBulbParams bulb_params, unsigned char* image, int frame)
 {
 
   int size = renderer_params.width * renderer_params.height;
@@ -210,22 +210,18 @@ const int fractalType = renderer_params.fractalType;
   const double eps = pow(10.0, detail); 
   const vec3 from = {camPos[0], camPos[1], camPos[2]};
   
-  //farpoint causes problems with sharing
-  //only ever used to subtract from to_arr, so just get rid of it
-  //double farPoint[3];
-  
- // const int height = renderer_params.height;
- // const int width  = renderer_params.width;
+
     
   #ifndef _OPENACC
   double time = getTime();
   #endif
 
+  // for some reason needed for compiler to parallelize loops
   const int cheight = height;
   const int cwidth = width;
   
   int i,j;
-  #pragma acc parallel //loop collapse(2)
+  #pragma acc parallel 
   #pragma acc loop
   for(j = 0; j < cheight; j++)
     {
@@ -239,8 +235,6 @@ const int fractalType = renderer_params.fractalType;
     	  // get point on the 'far' plane
         UnProject(i, j, viewport, matInvProjModel, to_arr[l]);//farPoint);
     	  
-        
-        //SUBTRACT_POINT(to_arr[l], farPoint, camera_params.camPos);
         to_arr[l].x = to_arr[l].x - camera_params.camPos[0];
         to_arr[l].y = to_arr[l].y - camera_params.camPos[1];
         to_arr[l].z = to_arr[l].z - camera_params.camPos[2];
@@ -249,11 +243,9 @@ const int fractalType = renderer_params.fractalType;
         NORMALIZE( to_arr[l] );	  
     	  
         //render the pixel
-        //rayMarch(renderer_params, bulb_params, from, to_arr[l], eps, pix_arr[l]);  	  
         rayMarch(maxRaySteps, maxDistance, escape_time, power, num_iter, from, to_arr[l], eps, pix_arr[l]);     
 
     	  //get the colour at this pixel
-    	  //getColour(pix_arr[l], renderer_params, from, to_arr[l], color_arr[l]);
         getColour(pix_arr[l], colourType, brightness, from, to_arr[l], color_arr[l]);
           
     	  //save colour into texture
@@ -265,7 +257,7 @@ const int fractalType = renderer_params.fractalType;
 	    }
 
       #ifndef _OPENACC
-      printProgress((j+1)/(double)height,getTime()-time);
+      printProgress((j+1)/(double)height,getTime()-time, frame);
       #endif
       
     }

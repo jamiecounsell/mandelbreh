@@ -72,19 +72,10 @@ inline double MandelBulbDistanceEstimator(const vec3 &p0,
   return 0.5*log(r)*r/dr;
 }
 
-/*
-inline void normal(const MandelBulbParams &bulb_params, const vec3 & p, vec3 & normal)
-{
-
-}
-*/
-
 #pragma acc routine seq
 void rayMarch(const int maxRaySteps, const float maxDistance,
  const float escape_time, const float power, const int num_iter,
  const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data)
-//void rayMarch(const RenderParams render_params, const MandelBulbParams bulb_params,
-// const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data)
 {
   double dist = 0.0;
   double totalDist = 0.0;
