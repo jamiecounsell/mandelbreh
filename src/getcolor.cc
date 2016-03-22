@@ -54,7 +54,7 @@ inline void lighting(const vec3 &n, const vec3 &color, const vec3 &pos, const ve
 }
 
 #pragma acc routine seq
-void getColour(const pixelData &pixData, const RenderParams render_params,
+void getColour(const pixelData &pixData, const int colourType, const float brightness, //const RenderParams render_params,
 	       const vec3 &from, const vec3  &direction, vec3 &result)
 {
 
@@ -70,12 +70,12 @@ void getColour(const pixelData &pixData, const RenderParams render_params,
       lighting(pixData.normal, hitColor, pixData.hit, direction, hitColor);
       
       //add normal based colouring
-      if(render_params.colourType == 0 || render_params.colourType == 1)
+      if(colourType == 0 || colourType == 1)
 	{
 
-    hitColor.x = (hitColor.x * pixData.normal.x + 1.0)/2.0 * render_params.brightness;
-    hitColor.y = (hitColor.y * pixData.normal.y + 1.0)/2.0 * render_params.brightness;
-    hitColor.z = (hitColor.z * pixData.normal.z + 1.0)/2.0 * render_params.brightness;
+    hitColor.x = (hitColor.x * pixData.normal.x + 1.0)/2.0 * brightness;
+    hitColor.y = (hitColor.y * pixData.normal.y + 1.0)/2.0 * brightness;
+    hitColor.z = (hitColor.z * pixData.normal.z + 1.0)/2.0 * brightness;
 
 	  //gamma correction
 	  v_clamp(hitColor, 0.0, 1.0);
@@ -84,7 +84,7 @@ void getColour(const pixelData &pixData, const RenderParams render_params,
     hitColor.z = hitColor.z * hitColor.z;
 
 	}
-      if(render_params.colourType == 1)
+      if(colourType == 1)
 	{
 	  //"swap" colors
 	  double t = hitColor.x;

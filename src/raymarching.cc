@@ -34,7 +34,8 @@
 #endif
 
 
-inline double MandelBulbDistanceEstimator(const vec3 &p0, const MandelBulbParams &params)
+inline double MandelBulbDistanceEstimator(const vec3 &p0, 
+  const float escape_time, const float power, const int num_iter)
 {
   vec3 z;
   //z = p0;
@@ -43,10 +44,10 @@ inline double MandelBulbDistanceEstimator(const vec3 &p0, const MandelBulbParams
   double dr = 1.0;
   double r = 0.0;
 
-  double Bailout = params.escape_time;//params.rMin;
-  double Power = params.power;//params.rFixed;
+  double Bailout = escape_time;//params.rMin;
+  double Power = power;//params.rFixed;
 
-  for (int i=0; i < params.num_iter; i++) 
+  for (int i=0; i < num_iter; i++) 
     {
       MAGNITUDE(r,z);
       if(r > Bailout) break; 
@@ -79,8 +80,11 @@ inline void normal(const MandelBulbParams &bulb_params, const vec3 & p, vec3 & n
 */
 
 #pragma acc routine seq
-void rayMarch(const RenderParams render_params, const MandelBulbParams bulb_params,
+void rayMarch(const int maxRaySteps, const float maxDistance,
+ const float escape_time, const float power, const int num_iter,
  const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data)
+//void rayMarch(const RenderParams render_params, const MandelBulbParams bulb_params,
+// const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data)
 {
   double dist = 0.0;
   double totalDist = 0.0;
@@ -103,7 +107,9 @@ void rayMarch(const RenderParams render_params, const MandelBulbParams bulb_para
         from.z + direction.z * totalDist
         );
 
-      dist = MandelBulbDistanceEstimator(p, bulb_params);
+      //dist = MandelBulbDistanceEstimator(p, bulb_params);
+      dist = MandelBulbDistanceEstimator(p, escape_time, power, num_iter);
+
       
       totalDist += .95*dist;
       
@@ -111,7 +117,7 @@ void rayMarch(const RenderParams render_params, const MandelBulbParams bulb_para
       epsModified*=eps;
       steps++;
     }
-  while (dist > epsModified && totalDist <= render_params.maxDistance && steps < render_params.maxRaySteps);
+  while (dist > epsModified && totalDist <= maxDistance && steps < maxRaySteps);
   
   //vec3 hitNormal; unused
 
@@ -152,9 +158,9 @@ void rayMarch(const RenderParams render_params, const MandelBulbParams bulb_para
       VECTOR_DIFF(vd2, normPos, e2);
       VECTOR_DIFF(vd3, normPos, e3);
       
-      pix_data.normal.x = MandelBulbDistanceEstimator(vs1, bulb_params)-MandelBulbDistanceEstimator(vd1, bulb_params); 
-      pix_data.normal.y = MandelBulbDistanceEstimator(vs2, bulb_params)-MandelBulbDistanceEstimator(vd2, bulb_params); 
-      pix_data.normal.z = MandelBulbDistanceEstimator(vs3, bulb_params)-MandelBulbDistanceEstimator(vd3, bulb_params);
+      pix_data.normal.x = MandelBulbDistanceEstimator(vs1, escape_time, power, num_iter)-MandelBulbDistanceEstimator(vd1, escape_time, power, num_iter); 
+      pix_data.normal.y = MandelBulbDistanceEstimator(vs2, escape_time, power, num_iter)-MandelBulbDistanceEstimator(vd2, escape_time, power, num_iter); 
+      pix_data.normal.z = MandelBulbDistanceEstimator(vs3, escape_time, power, num_iter)-MandelBulbDistanceEstimator(vd3, escape_time, power, num_iter);
       
       NORMALIZE(pix_data.normal);
       //normal(bulb_params, normPos, pix_data.normal);

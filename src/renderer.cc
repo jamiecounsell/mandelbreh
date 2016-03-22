@@ -35,15 +35,19 @@ extern double getTime();
 extern void   printProgress( double perc, double time );
 
 #pragma acc routine seq
-extern void rayMarch (const RenderParams render_params, const MandelBulbParams bulb_params,
-          const vec3 &from, const vec3  &to, double eps, pixelData &pix_data);
+extern void rayMarch(const int maxRaySteps, const float maxDistance,
+ const float escape_time, const float power, const int num_iter,
+ const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data);
+//extern void rayMarch (const RenderParams render_params, const MandelBulbParams bulb_params,
+//          const vec3 &from, const vec3  &to, double eps, pixelData &pix_data);
 
 #pragma acc routine seq
-extern void getColour(const pixelData &pixData, const RenderParams render_params,
+extern void getColour(const pixelData &pixData, const int colourType, const float brightness,//const RenderParams render_params,
 		      const vec3 &from, const vec3  &direction, vec3 &result);
 
 #pragma acc routine seq
-extern void UnProject(double winX, double winY, CameraParams camP, vec3 &obj);//double *obj);
+extern void UnProject(double winX, double winY, const int viewport[4], const double matInvProjModel[16], vec3 &obj);
+//extern void UnProject(double winX, double winY, CameraParams camP, vec3 &obj);//double *obj);
 
 void renderFractal(const CameraParams camera_params, const RenderParams renderer_params, 
                     const MandelBulbParams bulb_params, unsigned char* image)
@@ -61,7 +65,90 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
     vec3* color_arr = (vec3*)malloc(size * sizeof(vec3));
   #endif
 
- 
+const int fractalType = renderer_params.fractalType;
+  const int colourType = renderer_params.colourType;
+  const float brightness = renderer_params.brightness;
+  const int height = renderer_params.height;
+  const int width  = renderer_params.width;
+  const float detail = renderer_params.detail;
+  const int maxRaySteps = renderer_params.maxRaySteps;
+  const float maxDistance = renderer_params.maxDistance;
+
+  const double camPos[3] = {camera_params.camPos[0], camera_params.camPos[1], camera_params.camPos[2]} ;
+  const double camTarget[3] = {camera_params.camTarget[0],camera_params.camTarget[1],camera_params.camTarget[2]};
+  const double camUp[3] = { camera_params.camUp[0], camera_params.camUp[1], camera_params.camUp[2] };
+  const double fov = camera_params.fov;
+  const double matModelView[16] = 
+  {
+    camera_params.matModelView[0],
+    camera_params.matModelView[1],
+    camera_params.matModelView[2],
+    camera_params.matModelView[3],
+    camera_params.matModelView[4],
+    camera_params.matModelView[5],
+    camera_params.matModelView[6],
+    camera_params.matModelView[7],
+    camera_params.matModelView[8],
+    camera_params.matModelView[9],
+    camera_params.matModelView[10],
+    camera_params.matModelView[11],
+    camera_params.matModelView[12],
+    camera_params.matModelView[13],
+    camera_params.matModelView[14],
+    camera_params.matModelView[15]
+  };
+  const double matProjection[16] =
+  {
+    camera_params.matProjection[0],
+    camera_params.matProjection[1],
+    camera_params.matProjection[2],
+    camera_params.matProjection[3],
+    camera_params.matProjection[4],
+    camera_params.matProjection[5],
+    camera_params.matProjection[6],
+    camera_params.matProjection[7],
+    camera_params.matProjection[8],
+    camera_params.matProjection[9],
+    camera_params.matProjection[10],
+    camera_params.matProjection[11],
+    camera_params.matProjection[12],
+    camera_params.matProjection[13],
+    camera_params.matProjection[14],
+    camera_params.matProjection[15]
+  };
+  const double matInvProjModel[16] =
+  {
+    camera_params.matInvProjModel[0],
+    camera_params.matInvProjModel[1],
+    camera_params.matInvProjModel[2],
+    camera_params.matInvProjModel[3],
+    camera_params.matInvProjModel[4],
+    camera_params.matInvProjModel[5],
+    camera_params.matInvProjModel[6],
+    camera_params.matInvProjModel[7],
+    camera_params.matInvProjModel[8],
+    camera_params.matInvProjModel[9],
+    camera_params.matInvProjModel[10],
+    camera_params.matInvProjModel[11],
+    camera_params.matInvProjModel[12],
+    camera_params.matInvProjModel[13],
+    camera_params.matInvProjModel[14],
+    camera_params.matInvProjModel[15]
+  };
+  const int viewport[4] =
+  {
+    camera_params.viewport[0],
+    camera_params.viewport[1],
+    camera_params.viewport[2],
+    camera_params.viewport[3]
+  };
+
+  const  float escape_time =   bulb_params.escape_time;
+  const float power =  bulb_params.power;
+  const int num_iter =  bulb_params.num_iter; 
+
+
+ /*
   #pragma acc data copy(image[0:size*3]),   \
   pcopyin(                 \
     camera_params, \
@@ -91,35 +178,66 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
   ),            \
     deviceptr(to_arr, pix_arr, color_arr)
   {
+*/
 
-  const double eps = pow(10.0, renderer_params.detail); 
-  const vec3 from = {camera_params.camPos[0], camera_params.camPos[1], camera_params.camPos[2]};
+#pragma acc data copy(image[0:size*3]),   \
+  pcopyin(                 \
+    camPos[:3],      \
+    camTarget[:3],   \
+    camUp[:3],      \
+    fov,            \
+    matModelView[:16], \
+    matProjection[:16], \
+    matInvProjModel[:16], \
+    viewport[:4], \
+                  \
+    fractalType, \
+    colourType, \
+    brightness, \
+    height, \
+    width, \
+    detail, \
+    maxRaySteps, \
+    maxDistance, \
+                  \
+    escape_time, \
+    power, \
+    num_iter \
+  ),            \
+    deviceptr(to_arr, pix_arr, color_arr)
+  {
+
+  const double eps = pow(10.0, detail); 
+  const vec3 from = {camPos[0], camPos[1], camPos[2]};
   
   //farpoint causes problems with sharing
   //only ever used to subtract from to_arr, so just get rid of it
   //double farPoint[3];
   
-  const int height = renderer_params.height;
-  const int width  = renderer_params.width;
+ // const int height = renderer_params.height;
+ // const int width  = renderer_params.width;
     
   #ifndef _OPENACC
   double time = getTime();
   #endif
+
+  const int cheight = height;
+  const int cwidth = width;
   
   int i,j;
   #pragma acc parallel //loop collapse(2)
   #pragma acc loop
-  for(j = 0; j < height; j++)
+  for(j = 0; j < cheight; j++)
     {
       #pragma acc loop
-      for(i = 0; i < width; i++)
+      for(i = 0; i < cwidth; i++)
 	    {
         
         int k, l;
         l = (j * width + i );
  
     	  // get point on the 'far' plane
-        UnProject(i, j, camera_params, to_arr[l]);//farPoint);
+        UnProject(i, j, viewport, matInvProjModel, to_arr[l]);//farPoint);
     	  
         
         //SUBTRACT_POINT(to_arr[l], farPoint, camera_params.camPos);
@@ -132,9 +250,11 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
     	  
         //render the pixel
         //rayMarch(renderer_params, bulb_params, from, to_arr[l], eps, pix_arr[l]);  	  
-      
+        rayMarch(maxRaySteps, maxDistance, escape_time, power, num_iter, from, to_arr[l], eps, pix_arr[l]);     
+
     	  //get the colour at this pixel
     	  //getColour(pix_arr[l], renderer_params, from, to_arr[l], color_arr[l]);
+        getColour(pix_arr[l], colourType, brightness, from, to_arr[l], color_arr[l]);
           
     	  //save colour into texture
     	  k = (j * width + i)*3;
