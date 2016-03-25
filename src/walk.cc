@@ -1,7 +1,6 @@
 #include "camera.h"
 #include "vector3d.h"
 #include <stdio.h>
-#include <math.h>
 
 #define STEPSIZE  0.001;
 #define TOLERANCE 0.005;
