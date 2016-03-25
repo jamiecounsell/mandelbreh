@@ -23,6 +23,9 @@
 #include "camera.h"
 #include "renderer.h"
 #include "mandelbulb.h"
+#include "walk.h"
+
+void walk(CameraParams *camera_params);
 
 void getParameters(char *filename, CameraParams *camera_params, RenderParams *renderer_params,
 		   MandelBulbParams *mandelBulb_paramsP);
@@ -52,25 +55,15 @@ int main(int argc, char** argv)
       char buf[15];
 
       sprintf(buf, "../frames/%05d.bmp", i);
-
-      camera_params.camPos[0] = camera_params.camPos[0]-(0.01);
-      camera_params.camPos[1] = camera_params.camPos[1]-(0.01);
-      camera_params.camPos[2] = camera_params.camPos[2]-(0.01);
+      walk(&camera_params);
       renderFractal(camera_params, renderer_params, mandelBulb_params, image, i);
       saveBMP(buf, image, renderer_params.width, renderer_params.height);
   }
-  printf("\n");
   free(image);
   #ifdef VIDEO
+    printf("\n");
     system("./genvideo.sh");
   #endif
-
-
-  /*
-  renderFractal(camera_params, renderer_params, mandelBulb_params, image);
-  saveBMP(renderer_params.file_name, image, renderer_params.width, renderer_params.height);
-  free(image);
-  */
 
   return 0;
 }

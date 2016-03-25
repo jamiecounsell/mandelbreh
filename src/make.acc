@@ -10,7 +10,7 @@ LDFLAGS  = $(FLAGS)
 
 PROGRAM_NAME=mandelbulb
 
-OBJS =  main.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o
+OBJS =  main.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o walk.o
 
 acc: $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(PROGRAM_NAME) $? $(LDFLAGS)

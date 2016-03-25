@@ -181,6 +181,4 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
   }
 
   }// END DEVICE DATA REGION
-
-  printf("\n rendering done:\n");
 }
