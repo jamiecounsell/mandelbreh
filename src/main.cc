@@ -55,7 +55,7 @@ int main(int argc, char** argv)
       char buf[15];
 
       sprintf(buf, "../frames/%05d.bmp", i);
-      walk(&camera_params);
+      walk(&camera_params, &renderer_params, &mandelBulb_params);
       renderFractal(camera_params, renderer_params, mandelBulb_params, image, i);
       saveBMP(buf, image, renderer_params.width, renderer_params.height);
   }

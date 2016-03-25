@@ -73,7 +73,7 @@ inline double MandelBulbDistanceEstimator(const vec3 &p0,
 }
 
 #pragma acc routine seq
-void rayMarch(const int maxRaySteps, const float maxDistance,
+double rayMarch(const int maxRaySteps, const float maxDistance,
  const float escape_time, const float power, const int num_iter,
  const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data)
 {
@@ -81,7 +81,6 @@ void rayMarch(const int maxRaySteps, const float maxDistance,
   double totalDist = 0.0;
 
   const double sqrt_mach_eps = 1.4901e-08;
-
   
   // We will adjust the minimum distance based on the current zoom
 
@@ -155,7 +154,11 @@ void rayMarch(const int maxRaySteps, const float maxDistance,
       
       NORMALIZE(pix_data.normal);
     }
-  else 
+  else {
     //we have the background color
     pix_data.escaped = true;
+    return 0;
+  }
+
+  return dist;
 }

@@ -35,7 +35,7 @@ extern double getTime();
 extern void   printProgress( double perc, double time, int frame );
 
 #pragma acc routine seq
-extern void rayMarch(const int maxRaySteps, const float maxDistance,
+extern double rayMarch(const int maxRaySteps, const float maxDistance,
   const float escape_time, const float power, const int num_iter,
   const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data);
 

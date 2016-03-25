@@ -2,6 +2,9 @@
 #define _walk_h
 #include "camera.h"
 
-void walk(CameraParams *camera_params);
+#define PRINTVEC(vec, end) ( printf("(%f, %f, %f)%s", vec.x, vec.y, vec.z, end) )
+
+void walk(CameraParams *camera_params, RenderParams *renderer_params,
+           MandelBulbParams *bulb_params);
 
 #endif
