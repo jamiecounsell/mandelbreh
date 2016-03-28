@@ -1,3 +1,6 @@
+nohup.out
+_notes/
+*.sublime-*
 *.o
 *.ppm
 *.jpg
