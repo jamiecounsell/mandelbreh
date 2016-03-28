@@ -5,7 +5,7 @@ CXX      =  pgc++
 GPUFLAGS = -fast -acc -ta=tesla,cc35 -Minfo=accel -Minline
 FLAGS    = -O3 $(VIDEO)
 CFLAGS   = $(FLAGS)
-CXXFLAGS = $(GPUFLAGS)
+CXXFLAGS = $(GPUFLAGS) $(VIDEO)
 LDFLAGS  = $(FLAGS)
 
 PROGRAM_NAME=mandelbulb

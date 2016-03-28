@@ -108,7 +108,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
 
 
   // DATA COPY
-  #pragma acc data copy(image[0:size*3]),   \
+  #pragma acc data present_or_copy(image[0:size*3]),   \
   pcopyin(                 \
     camPos[:3],      \
     matInvProjModel[:16], \
@@ -181,4 +181,8 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
   }
 
   }// END DEVICE DATA REGION
+
+  acc_free(direction);
+  acc_free(pixel);
+  acc_free(color);
 }

@@ -46,12 +46,19 @@ int main(int argc, char** argv)
   
   getParameters(argv[1], &camera_params, &renderer_params, &mandelBulb_params);
 
+  int num_of_iterations = 1;
+
+  if (argc > 2) {
+    num_of_iterations = atoi(argv[2]);
+    printf("Running %d iterations.\n", num_of_iterations);
+  }
+
   int image_size = renderer_params.width * renderer_params.height;
   unsigned char *image = (unsigned char*)malloc(3*image_size*sizeof(unsigned char));
 
   init3D(&camera_params, &renderer_params);
 
-  for (i = 0; i < 3; i++){
+  for (i = 0; i < num_of_iterations; i++){
       char buf[15];
 
       sprintf(buf, "../frames/%05d.bmp", i);
@@ -61,7 +68,6 @@ int main(int argc, char** argv)
   }
   free(image);
   #ifdef VIDEO
-    printf("\n");
     system("./genvideo.sh");
   #endif
 

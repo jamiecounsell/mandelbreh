@@ -11,7 +11,7 @@
 #define STEPSIZE  0.001;
 #define TOLERANCE 0.005;
 
-double VECTOR_OPTIONS [5] = {sqrt(1.0/(double)3.0), -sqrt(1.0/(double)3.0), (double)0, (double)1, (double)-1};
+double VECTOR_OPTIONS [5] = {sqrt(1.0/(double)3.0), -sqrt(1.0/(double)3.0), (double)1, (double)-1};
 vec3 directions [125];
 
 extern double rayMarch(const int maxRaySteps, const float maxDistance,
@@ -46,9 +46,12 @@ void walk(CameraParams *camera_params, RenderParams *renderer_params,
 
     pixelData pixel;
     const double eps = pow(10.0, renderer_params->detail); 
-    vec3 maxdir;
-    double maxd = 0;
+    vec3 nextdir;
+    float tol = TOLERANCE;
+    double closed = 0;
     for (i = 0; i < 125; i++){
+        SUBTRACT_DOUBLE_ARRAY(directions[i], camera_params->camPos);
+        NORMALIZE( directions[i] );
         double dist = rayMarch(
             renderer_params->maxRaySteps,
             renderer_params->maxDistance,
@@ -59,15 +62,15 @@ void walk(CameraParams *camera_params, RenderParams *renderer_params,
             directions[i],
             eps,
             pixel);  
-        if (dist > maxd) { maxd = dist; SET_POINT(maxdir, directions[i]) }
+        if (tol < dist < closed) { closed = dist; SET_POINT(nextdir, directions[i]) }
     }
-    printf("Farthest point: "); PRINTVEC(maxdir, ""); printf("distance: %f\n", maxd);
+    printf("Farthest point: "); PRINTVEC(nextdir, ""); printf("distance: %f\n", closed);
     // Make decision
 
 
     // Change params
-    camera_params->camPos[0] = x;
-    camera_params->camPos[1] = y;
-    camera_params->camPos[2] = z;
+    camera_params->camPos[0] = x + 0.001 * nextdir.x;
+    camera_params->camPos[1] = y + 0.001 * nextdir.y;
+    camera_params->camPos[2] = z + 0.001 * nextdir.z;
     printf("\n");
 }
