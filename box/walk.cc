@@ -8,8 +8,8 @@
 
 #include <stdio.h>
 
-#define STEPSIZE  0.001;
-#define TOLERANCE 0.005;
+#define STEPSIZE  0.001 * 10;
+#define TOLERANCE 0.005 * 10;
 
 double VECTOR_OPTIONS [5] = {sqrt(1.0/(double)3.0), -sqrt(1.0/(double)3.0), (double)1, (double)-1};
 vec3 directions [125];
@@ -48,7 +48,7 @@ void walk(CameraParams *camera_params, RenderParams *renderer_params,
     const double eps = pow(10.0, renderer_params->detail); 
     vec3 nextdir;
     float tol = TOLERANCE;
-    double closed = 0;
+    double closed = 100;
     for (i = 0; i < 125; i++){
         SUBTRACT_DOUBLE_ARRAY(directions[i], camera_params->camPos);
         NORMALIZE( directions[i] );
@@ -69,10 +69,10 @@ void walk(CameraParams *camera_params, RenderParams *renderer_params,
     printf("Farthest point: "); PRINTVEC(nextdir, ""); printf("distance: %f\n", closed);
     // Make decision
 
-
+    float step = STEPSIZE;
     // Change params
-    camera_params->camPos[0] = x + 0.001 * nextdir.x;
-    camera_params->camPos[1] = y + 0.001 * nextdir.y;
-    camera_params->camPos[2] = z + 0.001 * nextdir.z;
+    camera_params->camPos[0] = x + step * nextdir.x;
+    camera_params->camPos[1] = y + step * nextdir.y;
+    camera_params->camPos[2] = z + step * nextdir.z;
     printf("\n");
 }

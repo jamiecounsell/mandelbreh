@@ -1,4 +1,4 @@
-all: acc
+all: box bulb
 
 VIDEO    = -DVIDEO
 CXX      =  pgc++
@@ -12,8 +12,13 @@ PROGRAM_NAME=mandelbox
 
 OBJS =  main.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o walk.o
 
-acc: $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(PROGRAM_NAME) $? $(LDFLAGS)
+box: $(OBJS)
+	$(CXX) $(CXXFLAGS) -DBOX -o $(PROGRAM_NAME) $? $(LDFLAGS) 
+
+
+bulb: $(OBJS)
+    $(CXX) $(CXXFLAGS) -DBULB -o $(PROGRAM_NAME) $? $(LDFLAGS) 
+
 
 clean:
 	rm -f *.o mandelbox *~
