@@ -1,4 +1,4 @@
-all: acc
+all: box bulb
 
 VIDEO    = -DVIDEO
 CXX      =  pgc++
@@ -8,12 +8,17 @@ CFLAGS   = $(FLAGS)
 CXXFLAGS = $(GPUFLAGS) $(VIDEO)
 LDFLAGS  = $(FLAGS)
 
-PROGRAM_NAME=mandelbulb
+PROGRAM_NAME=mandel
 
 OBJS =  main.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o walk.o
 
-acc: $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(PROGRAM_NAME) $? $(LDFLAGS)
+box: $(OBJS)
+    $(CXX) $(CXXFLAGS) -DBOX -o $(PROGRAM_NAME)box $? $(LDFLAGS) 
+
+
+bulb: $(OBJS)
+    $(CXX) $(CXXFLAGS) -DBULB -o $(PROGRAM_NAME)bulb $? $(LDFLAGS) 
+
 
 clean:
-	rm -f *.o mandelbulb *~
+    rm -f *.o mandelbox mandelbulb *~

@@ -11,3 +11,6 @@ _notes/
 *.avi
 .~*
 src/mandelbulb
+src/mandelbox
+box/mandelbox
+box/mandelbulb
