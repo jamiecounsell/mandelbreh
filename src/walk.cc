@@ -8,8 +8,8 @@
 
 #include <stdio.h>
 
-#define STEPSIZE  0.001;
-#define TOLERANCE 0.005;
+#define STEPSIZE  0.0025;
+#define TOLERANCE 0.0005;
 
 double VECTOR_OPTIONS [5] = {sqrt(1.0/(double)3.0), -sqrt(1.0/(double)3.0), (double)1, (double)-1};
 vec3 directions [125];
@@ -31,8 +31,8 @@ void walk(CameraParams *camera_params, RenderParams *renderer_params,
     VEC(current, x, y, z);
     printf("Current position:");PRINTVEC(current, "\n");
 
-    // Measure distance to object along other vectors
-
+    // Get possible movement vectors
+    // TODO: move this to main - not necessary to recalculate
     for (i = 0; i < 5; i ++) {
         for (j = 0; j < 5; j++) {
             for (k = 0; k < 5; k++) {
@@ -44,11 +44,12 @@ void walk(CameraParams *camera_params, RenderParams *renderer_params,
         }
     }
 
+    // Make decision for next place
     pixelData pixel;
     const double eps = pow(10.0, renderer_params->detail); 
     vec3 nextdir;
     float tol = TOLERANCE;
-    double closed = 0;
+    double closed = 100;
     for (i = 0; i < 125; i++){
         SUBTRACT_DOUBLE_ARRAY(directions[i], camera_params->camPos);
         NORMALIZE( directions[i] );
@@ -65,7 +66,6 @@ void walk(CameraParams *camera_params, RenderParams *renderer_params,
         if (tol < dist < closed) { closed = dist; SET_POINT(nextdir, directions[i]) }
     }
     printf("Farthest point: "); PRINTVEC(nextdir, ""); printf("distance: %f\n", closed);
-    // Make decision
 
 
     // Change params
