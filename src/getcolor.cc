@@ -26,6 +26,7 @@
 
 #ifdef _OPENACC
 #include <openacc.h>
+#include <accelmath.h>
 #endif
 
 
@@ -50,6 +51,15 @@ void getcolor(const pixelData &pixData, const int colorType, const float brightn
 	       const vec3 &from, const vec3  &direction, vec3 &result)
 {
 
+  /* COLOR SCHEMES 
+
+      0, 1: default
+      2   : red filter
+      3   : grayscale
+      4   : less flamboyant rainbow
+  */
+
+
   vec3 baseColor = {1.0, 1.0, 1.0};
   vec3 backColor = {0.4, 0.4, 0.4};
 
@@ -62,9 +72,9 @@ void getcolor(const pixelData &pixData, const int colorType, const float brightn
       lighting(pixData.normal, hitColor, pixData.hit, direction, hitColor);
       
       //add normal based coloring
-      if(colorType == 0 || colorType == 1)
+      if(colorType == 0 || colorType == 1 || colorType == 2 || colorType == 3 || colorType == 4)
     	{
-
+        
         hitColor.x = (hitColor.x * pixData.normal.x + 1.0)/2.0 * brightness;
         hitColor.y = (hitColor.y * pixData.normal.y + 1.0)/2.0 * brightness;
         hitColor.z = (hitColor.z * pixData.normal.z + 1.0)/2.0 * brightness;
@@ -74,13 +84,31 @@ void getcolor(const pixelData &pixData, const int colorType, const float brightn
         SQUARE(hitColor);
 
     	}
-          if(colorType == 1)
+      if(colorType == 1)
     	{
     	  //"swap" colors
     	  double t = hitColor.x;
     	  hitColor.x = hitColor.z;
     	  hitColor.z = t;
-    	}
+    	} else if (colorType == 2)
+      {
+        // red filter
+        hitColor.x = 0.0;
+      } else if (colorType == 3)
+      { 
+        // grayscale
+        //weighted average used by GIMP based on human perception
+        //double avg = 0.21 * hitColor.x + 0.72 * hitColor.y + 0.07 * hitColor.z;
+        double avg = (hitColor.x + hitColor.y + hitColor.z) / 3.0;
+        hitColor.x = avg;
+        hitColor.y = avg;
+        hitColor.z = avg; 
+      } else 
+      {
+        // rainbow
+        hitColor.x = 0.85 * hitColor.x;
+        hitColor.z = 0.7 * hitColor.z;
+      }
       
   }
   else {

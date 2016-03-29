@@ -46,7 +46,7 @@ int main(int argc, char** argv)
   
   getParameters(argv[1], &camera_params, &renderer_params, &mandelBox_params);
 
-  int num_of_iterations = 1;
+  int num_of_iterations = 50;
 
   if (argc > 2) {
     num_of_iterations = atoi(argv[2]);

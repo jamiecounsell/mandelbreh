@@ -34,12 +34,10 @@
 #endif
 
 
-inline double MandelBulbDistanceEstimator(const vec3 &p0, 
+inline double DE(const vec3 &p0, 
   const float escape_time, const float power, const int num_iter)
 {
-  vec3 z;
-  //z = p0;
-  SET_POINT(z, p0);
+  vec3 z = p0;
   
   double dr = 1.0;
   double r = 0.0;
@@ -97,8 +95,8 @@ double rayMarch(const int maxRaySteps, const float maxDistance,
         from.z + direction.z * totalDist
         );
 
-      //dist = MandelBulbDistanceEstimator(p, bulb_params);
-      dist = MandelBulbDistanceEstimator(p, escape_time, power, num_iter);
+      //dist = DE(p, bulb_params);
+      dist = DE(p, escape_time, power, num_iter);
 
       
       totalDist += .95*dist;
@@ -148,9 +146,9 @@ double rayMarch(const int maxRaySteps, const float maxDistance,
       VECTOR_DIFF(vd2, normPos, e2);
       VECTOR_DIFF(vd3, normPos, e3);
       
-      pix_data.normal.x = MandelBulbDistanceEstimator(vs1, escape_time, power, num_iter)-MandelBulbDistanceEstimator(vd1, escape_time, power, num_iter); 
-      pix_data.normal.y = MandelBulbDistanceEstimator(vs2, escape_time, power, num_iter)-MandelBulbDistanceEstimator(vd2, escape_time, power, num_iter); 
-      pix_data.normal.z = MandelBulbDistanceEstimator(vs3, escape_time, power, num_iter)-MandelBulbDistanceEstimator(vd3, escape_time, power, num_iter);
+      pix_data.normal.x = DE(vs1, escape_time, power, num_iter)-DE(vd1, escape_time, power, num_iter); 
+      pix_data.normal.y = DE(vs2, escape_time, power, num_iter)-DE(vd2, escape_time, power, num_iter); 
+      pix_data.normal.z = DE(vs3, escape_time, power, num_iter)-DE(vd3, escape_time, power, num_iter);
       
       NORMALIZE(pix_data.normal);
     }

@@ -51,7 +51,7 @@ inline double copysign(double x, double y){
 #define COMPONENT_FOLD(x) { (x) = fabs(x) <= 1? (x) : copysign(2,(x))-(x); }
 
 
-inline double MandelBoxDE(const vec3 &p0, const int num_iter, const float rMin, 
+inline double DE(const vec3 &p0, const int num_iter, const float rMin, 
   const float rFixed, const float escape_time, const float scale, double c1, double c2)
 {
   vec3 p = p0;
@@ -73,20 +73,14 @@ inline double MandelBoxDE(const vec3 &p0, const int num_iter, const float rMin,
 
       if (r2<rMin2)
   {
-    p.x = p.x * (rFixed2rMin2);
-    p.y = p.y * (rFixed2rMin2);
-    p.z = p.z * (rFixed2rMin2);
-
-    dfactor *= (rFixed2rMin2);
+    MULTIPLY_BY_DOUBLE(p, rFixed2rMin2);
+    dfactor *= rFixed2rMin2;
   }
       else
       if ( r2<rFixed2) 
   {
     const double t = (rFixed2/r2);
-    p.x = p.x * (rFixed2/r2);
-    p.y = p.y * (rFixed2/r2);
-    p.z = p.z * (rFixed2/r2);
-
+    MULTIPLY_BY_DOUBLE(p, t);
     dfactor *= t;
   }
       
@@ -137,7 +131,7 @@ double rayMarch(const int maxRaySteps, const float maxDistance,
         from.z + direction.z * totalDist
         );
 
-      dist = MandelBoxDE(p, num_iter, rMin, 
+      dist = DE(p, num_iter, rMin, 
         rFixed, escape_time, scale, c1, c2);
 
       
@@ -170,7 +164,7 @@ double rayMarch(const int maxRaySteps, const float maxDistance,
 
       // compute the normal at p
       double eps;
-      MAGNITUDE(eps, normPos) ;// std::max( p.Magnitude(), 1.0 )*sqrt_mach_eps;
+      MAGNITUDE(eps, normPos) ;
       eps = MAX(eps, 1.0);
       eps *= sqrt_mach_eps;
 
@@ -188,15 +182,15 @@ double rayMarch(const int maxRaySteps, const float maxDistance,
       VECTOR_DIFF(vd2, normPos, e2);
       VECTOR_DIFF(vd3, normPos, e3);
       
-      pix_data.normal.x = MandelBoxDE(vs1, num_iter, rMin, 
-        rFixed, escape_time, scale, c1, c2)-MandelBoxDE(vd1, num_iter, rMin, 
-        rFixed, escape_time, scale, c1, c2); 
-      pix_data.normal.y = MandelBoxDE(vs2, num_iter, rMin, 
-        rFixed, escape_time, scale, c1, c2)-MandelBoxDE(vd2, num_iter, rMin, 
-        rFixed, escape_time, scale, c1, c2); 
-      pix_data.normal.z = MandelBoxDE(vs3, num_iter, rMin, 
-        rFixed, escape_time, scale, c1, c2)-MandelBoxDE(vd3, num_iter, rMin, 
-        rFixed, escape_time, scale, c1, c2);
+      pix_data.normal.x = 
+        DE(vs1, num_iter, rMin,rFixed, escape_time, scale, c1, c2)
+        -DE(vd1, num_iter, rMin, rFixed, escape_time, scale, c1, c2); 
+      pix_data.normal.y = 
+        DE(vs2, num_iter, rMin, rFixed, escape_time, scale, c1, c2)
+        -DE(vd2, num_iter, rMin, rFixed, escape_time, scale, c1, c2); 
+      pix_data.normal.z = 
+        DE(vs3, num_iter, rMin, rFixed, escape_time, scale, c1, c2)
+        -DE(vd3, num_iter, rMin, rFixed, escape_time, scale, c1, c2);
       
       NORMALIZE(pix_data.normal);
     }
