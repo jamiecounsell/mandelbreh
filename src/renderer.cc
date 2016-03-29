@@ -23,6 +23,7 @@
 
 #include "color.h"
 #include "mandelbulb.h"
+#include "mandelbox.h"
 #include "camera.h"
 #include "vector3d.h"
 #include "3d.h"
@@ -34,10 +35,17 @@
 extern double getTime();
 extern void   printProgress( double perc, double time, int frame );
 
+#ifdef BULB
 #pragma acc routine seq
 extern double rayMarch(const int maxRaySteps, const float maxDistance,
   const float escape_time, const float power, const int num_iter,
   const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data);
+#else 
+#pragma acc routine seq
+extern double rayMarch(const int maxRaySteps, const float maxDistance,
+  const int num_iter, const float rMin, const float rFixed, const float escape_time, const float scale,
+  const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data);
+#endif
 
 #pragma acc routine seq
 extern void getcolor(const pixelData &pixData, const int colorType, const float brightness,
@@ -47,8 +55,13 @@ extern void getcolor(const pixelData &pixData, const int colorType, const float 
 extern void UnProject(double winX, double winY, const int viewport[4], const double matInvProjModel[16], vec3 &obj);
 
 
+#ifdef BULB
 void renderFractal(const CameraParams camera_params, const RenderParams renderer_params, 
                     const MandelBulbParams bulb_params, unsigned char* image, int frame)
+#else
+void renderFractal(const CameraParams camera_params, const RenderParams renderer_params, 
+                    const MandelBoxParams box_params, unsigned char* image, int frame)
+#endif
 {
 
   // DIRECTION, COLOR, PIXEL ARRAYS
@@ -101,11 +114,36 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
     camera_params.viewport[3]
   };
 
+
+#ifdef BULB
+
   // MANDELBULB PARAMS
   const  float escape_time =   bulb_params.escape_time;
   const float power =  bulb_params.power;
   const int num_iter =  bulb_params.num_iter; 
 
+  #pragma acc enter data pcopyin(    \
+    escape_time, \
+    power, \
+    num_iter \
+  )
+#else
+  
+  // MANDELBOX PARAMS
+  const int num_iter = box_params.num_iter;
+  const float rMin = box_params.rMin;
+  const float rFixed = box_params.rFixed;
+  const float escape_time = box_params.escape_time;
+  const float scale = box_params.scale;
+
+  #pragma acc enter data pcopyin(    \
+    rMin, \
+    rFixed, \
+    escape_time, \
+    scale, \
+    num_iter \
+  )
+#endif
 
   // DATA COPY
   #pragma acc data present_or_copy(image[0:size*3]),   \
@@ -120,11 +158,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
     width, \
     detail, \
     maxRaySteps, \
-    maxDistance, \
-                  \
-    escape_time, \
-    power, \
-    num_iter \
+    maxDistance \
   ),            \
     deviceptr(direction, pixel, color)
   {
@@ -161,7 +195,12 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
       NORMALIZE( direction[l] );	  
   	  
       //render the pixel
-      rayMarch(maxRaySteps, maxDistance, escape_time, power, num_iter, from, direction[l], eps, pixel[l]);     
+      #ifdef BULB
+      rayMarch(maxRaySteps, maxDistance, escape_time, power, num_iter, from, direction[l], eps, pixel[l]); 
+      #else
+      rayMarch(maxRaySteps, maxDistance, num_iter, rMin, 
+        rFixed, escape_time, scale, from, direction[l], eps, pixel[l]);  
+      #endif    
 
   	  //get the color at this pixel
       getcolor(pixel[l], colorType, brightness, from, direction[l], color[l]);
