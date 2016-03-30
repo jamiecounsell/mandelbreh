@@ -11,12 +11,12 @@
 #ifdef BOX
 
 #define STEPSIZE  (0.001 * 50);
-#define TOLERANCE (0.005 * 50);
+#define TOLERANCE (0.0005 * 50);
 
 #else
 
 #define STEPSIZE  0.001;
-#define TOLERANCE 0.005;
+#define TOLERANCE 0.0005;
 #endif
 
 double VECTOR_OPTIONS [5] = {sqrt(1.0/(double)3.0), -sqrt(1.0/(double)3.0), (double)1, (double)-1};
