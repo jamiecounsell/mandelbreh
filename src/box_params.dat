@@ -1,6 +1,6 @@
 # CAMERA
 # location  x,y,z   (7,7,7)
-14.0 8.0 10.0
+7.0 7.0 4.0
 # look at   x,y,z
 0 0 0 
 # up vector x,y,z;  (0, 1, 0)

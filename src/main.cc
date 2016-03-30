@@ -25,6 +25,7 @@
 #include "mandelbulb.h"
 #include "mandelbox.h"
 #include "walk.h"
+#include <unistd.h>
 
 void walk(CameraParams *camera_params);
 
@@ -59,42 +60,100 @@ int main(int argc, char** argv)
   CameraParams    camera_params;
   RenderParams    renderer_params;
 
-#ifdef BULB  
-  getParameters(argv[1], &camera_params, &renderer_params, &mandelBulb_params);
-#else
-  getParameters(argv[1], &camera_params, &renderer_params, &mandelBox_params);
-#endif
+  // Get bulb/box params
+  #ifdef BULB  
+    getParameters(argv[1], &camera_params, &renderer_params, &mandelBulb_params);
+  #else
+    getParameters(argv[1], &camera_params, &renderer_params, &mandelBox_params);
+  #endif
 
+
+  // Get parameters:
+  // -v   Generate video
+  // -n   Less verbose output
+
+  int vflag = 0;
+  int verbose = 1;
+  int c;
   int num_of_iterations = 1;
+  opterr = 0;
 
-  if (argc > 2) {
-    num_of_iterations = atoi(argv[2]);
-    printf("Running %d iterations.\n", num_of_iterations);
+  while ((c = getopt (argc, argv, "hvnf:")) != -1)
+    switch (c)
+    {
+      case 'h':
+        printf("Usage:");
+        #ifdef BULB
+          printf(" ./mandelbox ");
+        #else
+          printf(" ./mandelbulb ");
+        #endif
+        printf("-hvnf\n");
+        printf("   -h   : Display this help message\n");
+        printf("   -v   : Generate video from frames\n");
+        printf("   -n   : Less verbose output\n");
+        printf("   -f n : Generate n frames\n");
+        return 0;
+      case 'v':
+        vflag = 1;
+        break;
+      case 'n':
+        verbose = 0;
+        break;
+      case 'f':
+        if (optarg == NULL){
+          printf("Invalid option -f\nInteger required. Ex: -n 100\n");
+          return 1;
+        }
+        num_of_iterations = atoi(optarg);
+        break;
+      default:
+        printf("Unknwon Option. Aborting.\n");
+        return 1;
   }
 
+  // Initialize params and image
   int image_size = renderer_params.width * renderer_params.height;
   unsigned char *image = (unsigned char*)malloc(3*image_size*sizeof(unsigned char));
-
   init3D(&camera_params, &renderer_params);
 
+  // Verbose output. Silence with -n
+  if (verbose) {
+    printf("Image Size:       %dx%d\n", renderer_params.width, renderer_params.height);
+    printf("Video:            %d\n", vflag ? "Yes" : "No");
+      printf("Number of Frames: %d\n", num_of_iterations);
+    if (num_of_iterations == 1) {
+      printf("                  for more frames, use -f\n");
+    }
+  }
+
   for (i = 0; i < num_of_iterations; i++){
-      char buf[15];
 
-      sprintf(buf, "../frames/%05d.bmp", i);
+    // Generate unique image name
+    char buf[15];
+    sprintf(buf, "../frames/%05d.bmp", i);
 
-  #ifdef BULB
+    #ifdef BULB
+      // Mandelbulb
       walk(&camera_params, &renderer_params, &mandelBulb_params);
       renderFractal(camera_params, renderer_params, mandelBulb_params, image, i);
-  #else
+    #else
+      // Mandelbox
       walk(&camera_params, &renderer_params, &mandelBox_params);
       renderFractal(camera_params, renderer_params, mandelBox_params, image, i);
-  #endif
-      saveBMP(buf, image, renderer_params.width, renderer_params.height);
+    #endif
+
+    // Save image
+    saveBMP(buf, image, renderer_params.width, renderer_params.height);
   }
+ 
+  // Cleanup
   free(image);
-  #ifdef VIDEO
+
+  // Video shell script
+  if (vflag){
     system("./genvideo.sh");
-  #endif
+  }
 
   return 0;
 }

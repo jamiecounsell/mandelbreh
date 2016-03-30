@@ -1,11 +1,10 @@
 all: bulb
 
-VIDEO    = -DVIDEO
 CXX      =  pgc++
 GPUFLAGS = -fast -acc -ta=tesla,cc35 -Minfo=accel -Minline
-FLAGS    = -O3 $(VIDEO)
+FLAGS    = -O3
 CFLAGS   = $(FLAGS)
-CXXFLAGS=$(GPUFLAGS) $(VIDEO) -DBULB
+CXXFLAGS=$(GPUFLAGS) -DBULB
 LDFLAGS  = $(FLAGS)
 
 PROGRAM_NAME=mandelbulb

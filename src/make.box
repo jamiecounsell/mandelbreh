@@ -1,11 +1,10 @@
 all: box
 
-VIDEO    = -DVIDEO
 CXX      =  pgc++
 GPUFLAGS = -fast -acc -ta=tesla,cc35 -Minfo=accel -Minline
-FLAGS    = -O3 $(VIDEO)
+FLAGS    = -O3
 CFLAGS   = $(FLAGS)
-CXXFLAGS=$(GPUFLAGS) $(VIDEO) -DBOX
+CXXFLAGS=$(GPUFLAGS) -DBOX
 LDFLAGS  = $(FLAGS)
 
 PROGRAM_NAME=mandelbox

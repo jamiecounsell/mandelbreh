@@ -1,8 +1,7 @@
 all: serial
 
-VIDEO    = -DVIDEO
 CXX      =  g++
-FLAGS    = -O3 -Wall $(VIDEO)
+FLAGS    = -O3 -Wall
 CFLAGS   = $(FLAGS)
 CXXFLAGS = $(FLAGS) -DBOX
 LDFLAGS  = -lm
