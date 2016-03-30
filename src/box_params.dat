@@ -1,0 +1,26 @@
+# CAMERA
+# location  x,y,z   (7,7,7)
+14.0 8.0 10.0
+# look at   x,y,z
+0 0 0 
+# up vector x,y,z;  (0, 1, 0)
+0 1 0
+# field of view     (1)
+1.1
+# IMAGE
+# width height
+1080 1080
+# detail level, the smaller the more detailed (-3)
+-4
+# MANDELBOX
+# scale, rMin, rFixed  (2 0.5 1)
+2  0.5 1
+# max number of iterations, escape time
+18 100
+# COLORING
+# type 0 or 1  
+1
+# brightness
+1.2
+# IMAGE FILE NAME
+image.bmp

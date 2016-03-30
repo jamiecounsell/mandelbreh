@@ -89,7 +89,6 @@ int main(int argc, char** argv)
       walk(&camera_params, &renderer_params, &mandelBox_params);
       renderFractal(camera_params, renderer_params, mandelBox_params, image, i);
   #endif
-      
       saveBMP(buf, image, renderer_params.width, renderer_params.height);
   }
   free(image);

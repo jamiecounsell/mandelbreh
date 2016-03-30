@@ -4,15 +4,15 @@ VIDEO    = -DVIDEO
 CXX      =  g++
 FLAGS    = -O3 -Wall $(VIDEO)
 CFLAGS   = $(FLAGS)
-CXXFLAGS = $(FLAGS)
+CXXFLAGS = $(FLAGS) -DBOX
 LDFLAGS  = -lm
 
-PROGRAM_NAME=mandelbulb
+PROGRAM_NAME=mandelbox
 
-OBJS =  main.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o
+OBJS =  main.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o walk.o
 
 serial: $(OBJS)
 	$(CXX) -o $(PROGRAM_NAME) $? $(CXXFLAGS) $(LDFLAGS)
 
 clean:
-	rm -f *.o mandelbulb *~
+	rm -f *.o mandelbox *~

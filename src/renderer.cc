@@ -143,6 +143,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
     scale, \
     num_iter \
   )
+
 #endif
 
   // DATA COPY
@@ -221,7 +222,9 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
 
   }// END DEVICE DATA REGION
 
+  #ifdef _OPENACC
   acc_free(direction);
   acc_free(pixel);
   acc_free(color);
+  #endif
 }
