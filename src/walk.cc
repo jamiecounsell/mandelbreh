@@ -111,5 +111,6 @@ void walk(CameraParams *camera_params, RenderParams *renderer_params,
     camera_params->camPos[0] = x + step * nextdir.x;
     camera_params->camPos[1] = y + step * nextdir.y;
     camera_params->camPos[2] = z + step * nextdir.z;
+
     printf("\n");
 }

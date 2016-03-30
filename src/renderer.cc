@@ -39,12 +39,12 @@ extern void   printProgress( double perc, double time, int frame );
 #pragma acc routine seq
 extern double rayMarch(const int maxRaySteps, const float maxDistance,
   const float escape_time, const float power, const int num_iter,
-  const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data);
+  const vec3 &from, const vec3 &direction, double eps, pixelData& pix_data);
 #else 
 #pragma acc routine seq
 extern double rayMarch(const int maxRaySteps, const float maxDistance,
   const int num_iter, const float rMin, const float rFixed, const float escape_time, const float scale,
-  const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data);
+  const vec3 &from, const vec3 &direction, double eps, pixelData& pix_data);
 #endif
 
 #pragma acc routine seq
@@ -63,7 +63,6 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
                     const MandelBoxParams box_params, unsigned char* image, int frame)
 #endif
 {
-
   // DIRECTION, COLOR, PIXEL ARRAYS
   int size = renderer_params.width * renderer_params.height;
   #ifdef _OPENACC
@@ -176,7 +175,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
   // for some reason needed for compiler to parallelize loops
   const int cheight = height;
   const int cwidth = width;
-  
+
   int i,j;
   #pragma acc parallel 
   #pragma acc loop
@@ -201,7 +200,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
       #else
       rayMarch(maxRaySteps, maxDistance, num_iter, rMin, 
         rFixed, escape_time, scale, from, direction[l], eps, pixel[l]);  
-      #endif    
+      #endif
 
   	  //get the color at this pixel
       getcolor(pixel[l], colorType, brightness, from, direction[l], color[l]);

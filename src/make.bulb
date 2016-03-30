@@ -1,10 +1,10 @@
 all: bulb
 
 CXX      =  pgc++
-GPUFLAGS = -fast -acc -ta=tesla,cc35 -Minfo=accel -Minline
+GPUFLAGS = -fast -acc -ta=tesla:cc35 -Minfo=accel -Minline
 FLAGS    = -O3
 CFLAGS   = $(FLAGS)
-CXXFLAGS=$(GPUFLAGS) -DBULB
+CXXFLAGS = $(GPUFLAGS) -DBULB
 LDFLAGS  = $(FLAGS)
 
 PROGRAM_NAME=mandelbulb

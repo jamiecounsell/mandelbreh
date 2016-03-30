@@ -126,7 +126,6 @@ int main(int argc, char** argv)
     // Generate unique image name
     char buf[15];
     sprintf(buf, "../frames/%05d.bmp", i);
-    printf("here1\n");
     #ifdef BULB
       // Mandelbulb
       walk(&camera_params, &renderer_params, &mandelBulb_params, verbose);
