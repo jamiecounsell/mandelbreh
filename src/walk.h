@@ -6,10 +6,10 @@
 
 #ifdef BULB
 void walk(CameraParams *camera_params, RenderParams *renderer_params,
-           MandelBulbParams *bulb_params);
+           MandelBulbParams *bulb_params, int verbose);
 #else
 void walk(CameraParams *camera_params, RenderParams *renderer_params,
-           MandelBoxParams *box_params);
+           MandelBoxParams *box_params, int verbose);
 #endif
 
 #endif

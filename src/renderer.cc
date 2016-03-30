@@ -115,36 +115,36 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
   };
 
 
-#ifdef BULB
+  #ifdef BULB
 
-  // MANDELBULB PARAMS
-  const  float escape_time =   bulb_params.escape_time;
-  const float power =  bulb_params.power;
-  const int num_iter =  bulb_params.num_iter; 
+    // MANDELBULB PARAMS
+    const  float escape_time =   bulb_params.escape_time;
+    const float power =  bulb_params.power;
+    const int num_iter =  bulb_params.num_iter; 
 
-  #pragma acc enter data pcopyin(    \
-    escape_time, \
-    power, \
-    num_iter \
-  )
-#else
-  
-  // MANDELBOX PARAMS
-  const int num_iter = box_params.num_iter;
-  const float rMin = box_params.rMin;
-  const float rFixed = box_params.rFixed;
-  const float escape_time = box_params.escape_time;
-  const float scale = box_params.scale;
+    #pragma acc enter data pcopyin(    \
+      escape_time, \
+      power, \
+      num_iter \
+    )
+  #else
+    
+    // MANDELBOX PARAMS
+    const int num_iter = box_params.num_iter;
+    const float rMin = box_params.rMin;
+    const float rFixed = box_params.rFixed;
+    const float escape_time = box_params.escape_time;
+    const float scale = box_params.scale;
 
-  #pragma acc enter data pcopyin(    \
-    rMin, \
-    rFixed, \
-    escape_time, \
-    scale, \
-    num_iter \
-  )
+    #pragma acc enter data pcopyin(    \
+      rMin, \
+      rFixed, \
+      escape_time, \
+      scale, \
+      num_iter \
+    )
 
-#endif
+  #endif
 
   // DATA COPY
   #pragma acc data present_or_copy(image[0:size*3]),   \
@@ -217,14 +217,13 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
       #ifndef _OPENACC
       printProgress((j+1)/(double)height,getTime()-time, frame);
       #endif
-      
   }
 
   }// END DEVICE DATA REGION
 
   #ifdef _OPENACC
-  acc_free(direction);
-  acc_free(pixel);
-  acc_free(color);
+    acc_free(direction);
+    acc_free(pixel);
+    acc_free(color);
   #endif
 }

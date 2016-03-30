@@ -9,38 +9,35 @@
 
 #include <stdio.h>
 
-#define STEPSIZE  0.001 * 50;
-#define TOLERANCE 0.005 * 50;
-
-double VECTOR_OPTIONS [5] = {sqrt(1.0/(double)3.0), -sqrt(1.0/(double)3.0), (double)1, (double)-1};
-vec3 directions [125];
+#ifdef BULB
+    #define STEPSIZE  0.001;
+    #define TOLERANCE 0.005;
+#else
+    #define STEPSIZE  0.001 * 50;
+    #define TOLERANCE 0.005 * 50;
+#endif
+double VECTOR_OPTIONS [4] = {sqrt(1.0/(double)3.0), -sqrt(1.0/(double)3.0), (double)1, (double)-1};
+vec3 directions [24];
 
 #ifdef BULB
-
-extern double rayMarch(const int maxRaySteps, const float maxDistance,
-  const float escape_time, const float power, const int num_iter,
-  const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data);
-
+    extern double rayMarch(const int maxRaySteps, const float maxDistance,
+      const float escape_time, const float power, const int num_iter,
+      const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data);
 #else //BOX
-
-extern double rayMarch(const int maxRaySteps, const float maxDistance,
-  const int num_iter, const float rMin, const float rFixed, const float escape_time, const float scale,
-  const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data);
-
-
+    extern double rayMarch(const int maxRaySteps, const float maxDistance,
+      const int num_iter, const float rMin, const float rFixed, const float escape_time, const float scale,
+      const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data);
 #endif
+
 
 #ifdef BULB
 void walk(CameraParams *camera_params, RenderParams *renderer_params,
-           MandelBulbParams *bulb_params) 
-
+           MandelBulbParams *bulb_params, int verbose) 
 #else
 void walk(CameraParams *camera_params, RenderParams *renderer_params,
-           MandelBoxParams *box_params)
-
+           MandelBoxParams *box_params, int verbose)
 #endif
 {
-
     int i, j, k, pos;
     vec3 current;
     double  x = camera_params->camPos[0],
@@ -48,17 +45,22 @@ void walk(CameraParams *camera_params, RenderParams *renderer_params,
             z = camera_params->camPos[2];
     // Get current position
     VEC(current, x, y, z);
-    printf("Current position:");PRINTVEC(current, "\n");
+    if (verbose){
+        printf("Current position:");PRINTVEC(current, "\n");
+    }
 
     // Get possible movement vectors
     // TODO: move this to main - not necessary to recalculate
-    for (i = 0; i < 5; i ++) {
-        for (j = 0; j < 5; j++) {
-            for (k = 0; k < 5; k++) {
-                pos = (i * 25) + (j * 5) + k;
+    for (i = 0; i < 4; i ++) {
+        for (j = 0; j < 4; j++) {
+            for (k = 0; k < 4; k++) {
+
+                pos = (i * 4) + (j * 4) + k;
                 directions[pos].x= VECTOR_OPTIONS[i];
                 directions[pos].y= VECTOR_OPTIONS[j];
                 directions[pos].z= VECTOR_OPTIONS[k];
+
+                PRINTVEC(directions[pos], "\n");
             }
         }
     }
@@ -68,11 +70,11 @@ void walk(CameraParams *camera_params, RenderParams *renderer_params,
     const double eps = pow(10.0, renderer_params->detail); 
     vec3 nextdir;
     float tol = TOLERANCE;
-    double closed = 100;
+    double closed = 1000;
     for (i = 0; i < 125; i++){
         SUBTRACT_DOUBLE_ARRAY(directions[i], camera_params->camPos);
         NORMALIZE( directions[i] );
-#ifdef BULB
+        #ifdef BULB
         double dist = rayMarch(
             renderer_params->maxRaySteps,
             renderer_params->maxDistance,
@@ -83,7 +85,7 @@ void walk(CameraParams *camera_params, RenderParams *renderer_params,
             directions[i],
             eps,
             pixel); 
-#else
+        #else
         double dist = rayMarch(
             renderer_params->maxRaySteps,
             renderer_params->maxDistance,
@@ -97,11 +99,12 @@ void walk(CameraParams *camera_params, RenderParams *renderer_params,
             eps,
             pixel); 
 
-#endif 
+        #endif 
         if (tol < dist < closed) { closed = dist; SET_POINT(nextdir, directions[i]) }
     }
-    printf("Farthest point: "); PRINTVEC(nextdir, ""); printf("distance: %f\n", closed);
-
+    if (verbose){
+        printf("Farthest point: "); PRINTVEC(nextdir, " "); printf("distance: %f\n", closed);
+    }
 
     float step = STEPSIZE;
     // Change params

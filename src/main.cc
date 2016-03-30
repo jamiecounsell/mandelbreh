@@ -27,32 +27,26 @@
 #include "walk.h"
 #include <unistd.h>
 
-void walk(CameraParams *camera_params);
-
 #ifdef BULB
+
 void getParameters(char *filename, CameraParams *camera_params, RenderParams *renderer_params,
 		   MandelBulbParams *mandelBulb_paramsP);
-
 void renderFractal(const CameraParams camera_params, const RenderParams renderer_params, 
                   const MandelBulbParams bulb_params, unsigned char* image, int frame);
-
 MandelBulbParams mandelBulb_params;
 
 #else
+
 void getParameters(char *filename, CameraParams *camera_params, RenderParams *renderer_params,
        MandelBoxParams *mandelBox_paramsP);
-
 void renderFractal(const CameraParams camera_params, const RenderParams renderer_params, 
                   const MandelBoxParams box_params, unsigned char* image, int frame);
-
 MandelBoxParams mandelBox_params;
 
 #endif
 
 void init3D       (CameraParams *camera_params, const RenderParams *renderer_params);
-
 void saveBMP      (const char* filename, const unsigned char* image, int width, int height);
-
 
 int main(int argc, char** argv)
 {
@@ -132,19 +126,20 @@ int main(int argc, char** argv)
     // Generate unique image name
     char buf[15];
     sprintf(buf, "../frames/%05d.bmp", i);
-
+    printf("here1\n");
     #ifdef BULB
       // Mandelbulb
-      walk(&camera_params, &renderer_params, &mandelBulb_params);
+      walk(&camera_params, &renderer_params, &mandelBulb_params, verbose);
       renderFractal(camera_params, renderer_params, mandelBulb_params, image, i);
     #else
       // Mandelbox
-      walk(&camera_params, &renderer_params, &mandelBox_params);
+      walk(&camera_params, &renderer_params, &mandelBox_params, verbose);
       renderFractal(camera_params, renderer_params, mandelBox_params, image, i);
     #endif
 
     // Save image
     saveBMP(buf, image, renderer_params.width, renderer_params.height);
+
   }
  
   // Cleanup
