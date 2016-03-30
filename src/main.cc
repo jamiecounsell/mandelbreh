@@ -120,11 +120,11 @@ int main(int argc, char** argv)
   // Verbose output. Silence with -n
   if (verbose) {
     printf("Image Size:       %dx%d\n", renderer_params.width, renderer_params.height);
-    printf("Video:            %d\n", vflag ? "Yes" : "No");
-      printf("Number of Frames: %d\n", num_of_iterations);
+    printf("Video:            %s\n", vflag ? "Yes" : "No");
+      printf("Number of Frames: %d", num_of_iterations);
     if (num_of_iterations == 1) {
-      printf("                  for more frames, use -f\n");
-    }
+      printf(" (for more frames, use -f)\n\n");
+    } else { printf("\n\n"); }
   }
 
   for (i = 0; i < num_of_iterations; i++){
