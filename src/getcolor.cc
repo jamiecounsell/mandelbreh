@@ -72,7 +72,7 @@ void getcolor(const pixelData &pixData, const int colorType, const float brightn
       lighting(pixData.normal, hitColor, pixData.hit, direction, hitColor);
       
       //add normal based coloring
-      if(colorType == 0 || colorType == 1 || colorType == 2 || colorType == 3 || colorType == 4)
+      if(0 <= colorType <= 4)
     	{
         
         hitColor.x = (hitColor.x * pixData.normal.x + 1.0)/2.0 * brightness;

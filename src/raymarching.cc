@@ -25,6 +25,7 @@
 #include "color.h"
 #include "renderer.h"
 #include "mandelbulb.h"
+#include "mandelbox.h"
 
 #ifdef _OPENACC
 #include <openacc.h>
@@ -33,6 +34,8 @@
 #include <math.h>
 #endif
 
+
+#ifdef BULB //bulb DE
 
 inline double DE(const vec3 &p0, 
   const float escape_time, const float power, const int num_iter)
@@ -70,13 +73,100 @@ inline double DE(const vec3 &p0,
   return 0.5*log(r)*r/dr;
 }
 
+#else // BOX DE + macros, copysign function used within
+
+//copysign(x, y) : magnitude x, sign of y
+inline double copysign(double x, double y){
+
+  if(y < -0.00000000000001){
+    return -fabs(x);
+  }else{
+    return fabs(x);
+  }
+
+
+}
+#define SQR(x) ((x)*(x))
+#define COMPONENT_FOLD(x) { (x) = fabs(x) <= 1? (x) : copysign(2,(x))-(x); }
+
+inline double DE(const vec3 &p0, const int num_iter, const float rMin, 
+  const float rFixed, const float escape_time, const float scale, double c1, double c2)
+{
+
+
+  vec3 p = p0;
+  double rMin2   = SQR(rMin);
+  double rFixed2 = SQR(rFixed);
+  double escape  = SQR(escape_time);
+  double dfactor = 1; 
+  double r2      =-1;
+  const double rFixed2rMin2 = rFixed2/rMin2;
+
+  int i = 0;
+  while (i< num_iter && r2 < escape)
+    {
+      COMPONENT_FOLD(p.x);
+      COMPONENT_FOLD(p.y);
+      COMPONENT_FOLD(p.z);
+      
+      DOT(r2,p);      
+
+      if (r2<rMin2)
+  {
+    MULTIPLY_BY_DOUBLE(p, rFixed2rMin2);
+    dfactor *= rFixed2rMin2;
+  }
+      else
+      if ( r2<rFixed2) 
+  {
+    const double t = (rFixed2/r2);
+    MULTIPLY_BY_DOUBLE(p, t);
+    dfactor *= t;
+  }
+      
+
+      dfactor = dfactor*fabs(scale)+1.0;      
+      p.x = p.x * scale + p0.x;
+      p.y = p.y * scale + p0.y;
+      p.z = p.z * scale + p0.z;
+
+      i++;
+    }
+
+  double r = 0.0;
+  MAGNITUDE(r, p);
+  r -= c1;
+  r = r / dfactor;
+  r -= c2;
+  
+  return  r;
+}
+
+#endif
+
+
+// RAYMARCH
+
+#ifdef BULB
 #pragma acc routine seq
 double rayMarch(const int maxRaySteps, const float maxDistance,
  const float escape_time, const float power, const int num_iter,
  const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data)
+#else
+#pragma acc routine seq
+double rayMarch(const int maxRaySteps, const float maxDistance,
+ const int num_iter, const float rMin, const float rFixed, const float escape_time, const float scale,
+ const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data)
+#endif
 {
+
   double dist = 0.0;
   double totalDist = 0.0;
+
+  #ifdef BOX
+  double c1 = fabs(scale - 1.0);
+  double c2 = pow( fabs(scale), 1 - num_iter);
+  #endif
 
   const double sqrt_mach_eps = 1.4901e-08;
   
@@ -96,7 +186,12 @@ double rayMarch(const int maxRaySteps, const float maxDistance,
         );
 
       //dist = DE(p, bulb_params);
+      #ifdef BULB
       dist = DE(p, escape_time, power, num_iter);
+      #else
+      dist = DE(p, num_iter, rMin, 
+        rFixed, escape_time, scale, c1, c2);
+      #endif
 
       
       totalDist += .95*dist;
@@ -146,10 +241,22 @@ double rayMarch(const int maxRaySteps, const float maxDistance,
       VECTOR_DIFF(vd2, normPos, e2);
       VECTOR_DIFF(vd3, normPos, e3);
       
+      #ifdef BULB
       pix_data.normal.x = DE(vs1, escape_time, power, num_iter)-DE(vd1, escape_time, power, num_iter); 
       pix_data.normal.y = DE(vs2, escape_time, power, num_iter)-DE(vd2, escape_time, power, num_iter); 
       pix_data.normal.z = DE(vs3, escape_time, power, num_iter)-DE(vd3, escape_time, power, num_iter);
-      
+      #else
+      pix_data.normal.x = 
+        DE(vs1, num_iter, rMin,rFixed, escape_time, scale, c1, c2)
+        -DE(vd1, num_iter, rMin, rFixed, escape_time, scale, c1, c2); 
+      pix_data.normal.y = 
+        DE(vs2, num_iter, rMin, rFixed, escape_time, scale, c1, c2)
+        -DE(vd2, num_iter, rMin, rFixed, escape_time, scale, c1, c2); 
+      pix_data.normal.z = 
+        DE(vs3, num_iter, rMin, rFixed, escape_time, scale, c1, c2)
+        -DE(vd3, num_iter, rMin, rFixed, escape_time, scale, c1, c2);
+      #endif
+
       NORMALIZE(pix_data.normal);
     }
   else {

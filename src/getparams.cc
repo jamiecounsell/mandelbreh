@@ -10,13 +10,18 @@
 #include <string.h>
 #include "renderer.h"
 #include "mandelbulb.h"
+#include "mandelbox.h"
 #include "camera.h"
 
 #define BUF_SIZE 1024
 
 static char buf[BUF_SIZE];
 
+#ifdef BULB
 void getParameters(char *filename, CameraParams *camP, RenderParams *renP, MandelBulbParams *bulbP)
+#else
+void getParameters(char *filename, CameraParams *camP, RenderParams *renP, MandelBoxParams *boxP)
+#endif
 {
   FILE *fp;
   int ret;
@@ -84,13 +89,21 @@ void getParameters(char *filename, CameraParams *camP, RenderParams *renP, Mande
     // box: scale, rmin, rfixed
     // bulb: IGNORE, escape time(bailout), power
 	  //sscanf(buf, "%f %f %f", &boxP->scale, &boxP->rMin, &boxP->rFixed);
+  #ifdef BULB
  	  sscanf(buf, "%*f %f %f", &bulbP->escape_time, &bulbP->power);
+  #else
+    sscanf(buf, "%f %f %f", &boxP->scale, &boxP->rMin, &boxP->rFixed);
+  #endif
     break;
 	  
 	case 7:
 	  //sscanf(buf, "%d %f ", &boxP->num_iter, &boxP->escape_time);
     // bulb: max iterations, IGNORE
-    sscanf(buf, "%d %*f ", &bulbP->num_iter);	  
+  #ifdef BULB
+    sscanf(buf, "%d %*f ", &bulbP->num_iter);
+  #else	  
+    sscanf(buf, "%d %f ", &boxP->num_iter, &boxP->escape_time);
+  #endif
     break;
 	  
 	  //COLORING 

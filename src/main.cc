@@ -23,28 +23,47 @@
 #include "camera.h"
 #include "renderer.h"
 #include "mandelbulb.h"
+#include "mandelbox.h"
 #include "walk.h"
 
 void walk(CameraParams *camera_params);
 
+#ifdef BULB
 void getParameters(char *filename, CameraParams *camera_params, RenderParams *renderer_params,
 		   MandelBulbParams *mandelBulb_paramsP);
-void init3D       (CameraParams *camera_params, const RenderParams *renderer_params);
 
 void renderFractal(const CameraParams camera_params, const RenderParams renderer_params, 
                   const MandelBulbParams bulb_params, unsigned char* image, int frame);
 
+MandelBulbParams mandelBulb_params;
+
+#else
+void getParameters(char *filename, CameraParams *camera_params, RenderParams *renderer_params,
+       MandelBoxParams *mandelBox_paramsP);
+
+void renderFractal(const CameraParams camera_params, const RenderParams renderer_params, 
+                  const MandelBoxParams box_params, unsigned char* image, int frame);
+
+MandelBoxParams mandelBox_params;
+
+#endif
+
+void init3D       (CameraParams *camera_params, const RenderParams *renderer_params);
+
 void saveBMP      (const char* filename, const unsigned char* image, int width, int height);
 
-MandelBulbParams mandelBulb_params;
 
 int main(int argc, char** argv)
 {
   int i;
   CameraParams    camera_params;
   RenderParams    renderer_params;
-  
+
+#ifdef BULB  
   getParameters(argv[1], &camera_params, &renderer_params, &mandelBulb_params);
+#else
+  getParameters(argv[1], &camera_params, &renderer_params, &mandelBox_params);
+#endif
 
   int num_of_iterations = 1;
 
@@ -62,8 +81,14 @@ int main(int argc, char** argv)
       char buf[15];
 
       sprintf(buf, "../frames/%05d.bmp", i);
+
+  #ifdef BULB
       walk(&camera_params, &renderer_params, &mandelBulb_params);
       renderFractal(camera_params, renderer_params, mandelBulb_params, image, i);
+  #else
+      walk(&camera_params, &renderer_params, &mandelBox_params);
+      renderFractal(camera_params, renderer_params, mandelBox_params, image, i);
+  #endif
       saveBMP(buf, image, renderer_params.width, renderer_params.height);
   }
   free(image);
