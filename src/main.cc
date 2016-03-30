@@ -50,7 +50,7 @@ void saveBMP      (const char* filename, const unsigned char* image, int width, 
 
 int main(int argc, char** argv)
 {
-  int i;
+  int frame;
   CameraParams    camera_params;
   RenderParams    renderer_params;
 
@@ -61,11 +61,7 @@ int main(int argc, char** argv)
     getParameters(argv[1], &camera_params, &renderer_params, &mandelBox_params);
   #endif
 
-
   // Get parameters:
-  // -v   Generate video
-  // -n   Less verbose output
-
   int vflag = 0;
   int verbose = 1;
   int c;
@@ -110,6 +106,7 @@ int main(int argc, char** argv)
   int image_size = renderer_params.width * renderer_params.height;
   unsigned char *image = (unsigned char*)malloc(3*image_size*sizeof(unsigned char));
   init3D(&camera_params, &renderer_params);
+  CameraParams camera_history [num_of_iterations];
 
   // Verbose output. Silence with -n
   if (verbose) {
@@ -121,24 +118,23 @@ int main(int argc, char** argv)
     } else { printf("\n\n"); }
   }
 
-  for (i = 0; i < num_of_iterations; i++){
+  for (frame = 0; frame < num_of_iterations; frame++){
 
     // Generate unique image name
     char buf[15];
-    sprintf(buf, "../frames/%05d.bmp", i);
+    sprintf(buf, "../frames/%05d.bmp", frame);
     #ifdef BULB
       // Mandelbulb
-      walk(&camera_params, &renderer_params, &mandelBulb_params, verbose);
-      renderFractal(camera_params, renderer_params, mandelBulb_params, image, i);
+      walk(&camera_params, camera_history, &renderer_params, &mandelBulb_params, verbose, frame);
+      renderFractal(camera_params, renderer_params, mandelBulb_params, image, frame);
     #else
       // Mandelbox
-      walk(&camera_params, &renderer_params, &mandelBox_params, verbose);
-      renderFractal(camera_params, renderer_params, mandelBox_params, image, i);
+      walk(&camera_params, camera_history, &renderer_params, &mandelBox_params, verbose, frame);
+      renderFractal(camera_params, renderer_params, mandelBox_params, image, frame);
     #endif
 
     // Save image
     saveBMP(buf, image, renderer_params.width, renderer_params.height);
-
   }
  
   // Cleanup

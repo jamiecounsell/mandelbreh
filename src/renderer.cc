@@ -65,15 +65,15 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
 {
   // DIRECTION, COLOR, PIXEL ARRAYS
   int size = renderer_params.width * renderer_params.height;
-  #ifdef _OPENACC
+#ifdef _OPENACC
     vec3* direction = (vec3*)acc_malloc(size * sizeof(vec3));
     pixelData* pixel = (pixelData*)acc_malloc(size * sizeof(pixelData));
     vec3* color = (vec3*)acc_malloc(size * sizeof(vec3));
-  #else
+#else
     vec3* direction = (vec3*)malloc(size * sizeof(vec3));
     pixelData* pixel = (pixelData*)malloc(size * sizeof(pixelData));
     vec3* color = (vec3*)malloc(size * sizeof(vec3));
-  #endif
+#endif
 
   // RENDERER PARAMS
   const int colorType = renderer_params.colorType;
