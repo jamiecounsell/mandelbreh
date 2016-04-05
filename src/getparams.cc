@@ -90,7 +90,7 @@ void getParameters(char *filename, CameraParams *camP, RenderParams *renP, Mande
     // bulb: IGNORE, escape time(bailout), power
 	  //sscanf(buf, "%f %f %f", &boxP->scale, &boxP->rMin, &boxP->rFixed);
   #ifdef BULB
- 	  sscanf(buf, "%*f %f %f", &bulbP->escape_time, &bulbP->power);
+ 	sscanf(buf, "%*f %f %f", &bulbP->escape_time, &bulbP->power);
   #else
     sscanf(buf, "%f %f %f", &boxP->scale, &boxP->rMin, &boxP->rFixed);
   #endif

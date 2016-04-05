@@ -10,11 +10,11 @@
 #include <stdio.h>
 
 #ifdef BULB
-    #define STEPSIZE  0.001;
-    #define TOLERANCE 0.005;
+    #define STEPSIZE  0.0001;
+    #define TOLERANCE 0.0005;
 #else
-    #define STEPSIZE  0.015;
-    #define TOLERANCE 0.005;
+    #define STEPSIZE  0.00001;
+    #define TOLERANCE 0.00005;
 #endif
 
 #ifdef BULB
@@ -31,12 +31,12 @@ double VECTOR_OPTIONS [4] = {sqrt(1.0/(double)3.0), -sqrt(1.0/(double)3.0), (dou
 vec3 directions [28];
 
 #ifdef BULB
-void walk(CameraParams *camera_params, CameraParams *camera_history, 
+void walk(CameraParams *camera_history, 
             RenderParams *renderer_params,
             MandelBulbParams *bulb_params,
             int verbose, int frame) 
 #else
-void walk(CameraParams *camera_params, CameraParams *camera_history, 
+void walk(CameraParams *camera_history, 
             RenderParams *renderer_params,
             MandelBoxParams *box_params,
             int verbose, int frame)
@@ -44,9 +44,9 @@ void walk(CameraParams *camera_params, CameraParams *camera_history,
 {
     int i, j, k, pos;
     vec3 current;
-    double  x = camera_params->camPos[0],
-            y = camera_params->camPos[1],
-            z = camera_params->camPos[2];
+    double  x = camera_history[frame].camPos[0],
+            y = camera_history[frame].camPos[1],
+            z = camera_history[frame].camPos[2];
     // Get current position
     VEC(current, x, y, z);
     if (verbose){
@@ -69,13 +69,13 @@ void walk(CameraParams *camera_params, CameraParams *camera_history,
     // Make decision for next place
     pixelData pixel;
     const double eps = pow(10.0, renderer_params->detail); 
-    vec3 nextdir;
-    float tol = TOLERANCE;
-    float step = STEPSIZE;
+    int next;
+    double step = STEPSIZE;
+    double tol = TOLERANCE;
     double closed = 1000;
     for (i = 0; i < 28; i++){
-        SUBTRACT_DOUBLE_ARRAY(directions[i], camera_params->camPos);
-        NORMALIZE( directions[i] );
+        SUBTRACT_DOUBLE_ARRAY(directions[i], camera_history[frame].camPos);
+        NORMALIZE( directions[pos] );
 
         #ifdef BULB
         double dist = rayMarch(
@@ -104,10 +104,10 @@ void walk(CameraParams *camera_params, CameraParams *camera_history,
         #endif 
 
         if (    // if distance is within tolerance and not background
-                (tol < dist < closed) && (
+                (tol < fabs(dist) < closed) && (
 
                     // and history exists
-                    frame <= 1 || (
+                    frame == 0 || (
 
                         // and next step is different than previous step
                         camera_history[frame - 1].camPos[0] != x + step * directions[i].x &&
@@ -115,20 +115,16 @@ void walk(CameraParams *camera_params, CameraParams *camera_history,
                         camera_history[frame - 1].camPos[2] != z + step * directions[i].z
                     )
                 )
-            ) { closed = dist; SET_POINT(nextdir, directions[i]) }
+            ) { closed = dist; next = i; }
     }
     if (verbose){
-        printf("Farthest point: "); PRINTVEC(nextdir, " "); printf("distance: %f\n", closed);
+        printf("Closest point: "); PRINTVEC(directions[next], " "); printf("distance: %f\n", fabs(closed));
     }
 
     // Change params
-    camera_params->camPos[0] = x + step * nextdir.x;
-    camera_params->camPos[1] = y + step * nextdir.y;
-    camera_params->camPos[2] = z + step * nextdir.z;
-
-    camera_history[frame].camPos[0] = camera_params->camPos[0];
-    camera_history[frame].camPos[1] = camera_params->camPos[1];
-    camera_history[frame].camPos[2] = camera_params->camPos[2];
+    camera_history[frame + 1].camPos[0] = x + step * directions[next].x;
+    camera_history[frame + 1].camPos[1] = y + step * directions[next].y;
+    camera_history[frame + 1].camPos[2] = z + step * directions[next].z;
 
     printf("\n");
 }

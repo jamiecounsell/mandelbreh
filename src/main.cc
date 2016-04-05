@@ -20,6 +20,7 @@
 */
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "camera.h"
 #include "renderer.h"
 #include "mandelbulb.h"
@@ -50,23 +51,13 @@ void saveBMP      (const char* filename, const unsigned char* image, int width, 
 
 int main(int argc, char** argv)
 {
-  int frame;
-  CameraParams    camera_params;
-  RenderParams    renderer_params;
-
-  // Get bulb/box params
-  #ifdef BULB  
-    getParameters(argv[1], &camera_params, &renderer_params, &mandelBulb_params);
-  #else
-    getParameters(argv[1], &camera_params, &renderer_params, &mandelBox_params);
-  #endif
-
   // Get parameters:
-  int vflag = 0;
-  int verbose = 1;
-  int c;
-  int num_of_iterations = 1;
+  int vflag = 0,
+      verbose = 1,
+      num_of_iterations = 1,
+      c;
   opterr = 0;
+  char * fname = argv[1];
 
   while ((c = getopt (argc, argv, "hvnf:")) != -1)
     switch (c)
@@ -102,11 +93,22 @@ int main(int argc, char** argv)
         return 1;
   }
 
-  // Initialize params and image
+  int frame, i;
+  RenderParams renderer_params;
+  CameraParams camera_history [num_of_iterations + 1];
+
+  // Get bulb/box params
+  for (i=0;i<num_of_iterations;i++){
+    #ifdef BULB  
+      getParameters(fname, &camera_history[i], &renderer_params, &mandelBulb_params);
+    #else
+      getParameters(fname, &camera_history[i], &renderer_params, &mandelBox_params);
+    #endif
+    init3D(&camera_history[i], &renderer_params);
+  }
+    // Initialize params and image
   int image_size = renderer_params.width * renderer_params.height;
   unsigned char *image = (unsigned char*)malloc(3*image_size*sizeof(unsigned char));
-  init3D(&camera_params, &renderer_params);
-  CameraParams camera_history [num_of_iterations];
 
   // Verbose output. Silence with -n
   if (verbose) {
@@ -125,12 +127,12 @@ int main(int argc, char** argv)
     sprintf(buf, "../frames/%05d.bmp", frame);
     #ifdef BULB
       // Mandelbulb
-      walk(&camera_params, camera_history, &renderer_params, &mandelBulb_params, verbose, frame);
-      renderFractal(camera_params, renderer_params, mandelBulb_params, image, frame);
+      walk(camera_history, &renderer_params, &mandelBulb_params, verbose, frame);
+      renderFractal(camera_history[frame], renderer_params, mandelBulb_params, image, frame);
     #else
       // Mandelbox
-      walk(&camera_params, camera_history, &renderer_params, &mandelBox_params, verbose, frame);
-      renderFractal(camera_params, renderer_params, mandelBox_params, image, frame);
+      walk(camera_history, &renderer_params, &mandelBox_params, verbose, frame);
+      renderFractal(camera_history[frame], renderer_params, mandelBox_params, image, frame);
     #endif
 
     // Save image
