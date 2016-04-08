@@ -1,7 +1,7 @@
 all: bulb
 
 CXX      =  pgc++
-GPUFLAGS = -fast -acc -ta=tesla,cc35 -Minfo=accel -Minline
+GPUFLAGS = -fast -acc -ta=tesla,cc30 -Minfo=accel -Minline
 FLAGS    = -O3
 CFLAGS   = $(FLAGS)
 CXXFLAGS = $(GPUFLAGS) -DBULB
