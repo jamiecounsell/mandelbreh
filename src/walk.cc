@@ -21,15 +21,10 @@
     extern double rayMarch(const int maxRaySteps, const float maxDistance,
       const float escape_time, const float power, const int num_iter,
       const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data);
-
-    extern inline double DE(const vec3 &p0, 
-      const float escape_time, const float power, const int num_iter);
 #else //BOX
     extern double rayMarch(const int maxRaySteps, const float maxDistance,
       const int num_iter, const float rMin, const float rFixed, const float escape_time, const float scale,
       const vec3 &from, const vec3  &direction, double eps, pixelData& pix_data);
-    extern inline double DE(const vec3 &p0, const int num_iter, const float rMin, 
-      const float rFixed, const float escape_time, const float scale, double c1, double c2);
 #endif
 
 
@@ -49,41 +44,6 @@ void walk(CameraParams *camera_history,
 #endif
 {
 
-    vec3 center, pos;
-    double  x = camera_history[frame].camPos[0],
-            y = camera_history[frame].camPos[1],
-            z = camera_history[frame].camPos[2];
-    VEC(center, x, y, z);
-    VEC(pos, x, y, z);
-
-    double zer [3] = {0,0,0};
-
-    // Circling algorithm
-    SUBTRACT_DOUBLE_ARRAY(pos, zer);
-    NORMALIZE(pos);
-
-    pixelData pixel;
-    const double eps = pow(10.0, renderer_params->detail); 
-
-    #ifdef BULB
-        double dist = DE(
-            pos,
-            bulb_params->escape_time,
-            bulb_params->power,
-            bulb_params->num_iter);
-    #else
-        double c1 = fabs(box_params->scale - 1.0);
-        double c2 = pow( fabs(box_params->scale), 1 - bulb_params->num_iter);
-        double dist = DE(
-            pos,
-            bulb_params->num_iter,
-            box_params->rMin, 
-            box_params->rFixed, 
-            box_params->escape_time, 
-            box_params->scale,
-            c1, c2);
-    #endif
-
     double elevation = frame/800.0;
     double inclination = frame/450.0;
 
@@ -91,11 +51,13 @@ void walk(CameraParams *camera_history,
     camera_history[frame + 1].camPos[1] = 0.7 * sin(elevation) * sin(inclination);
     camera_history[frame + 1].camPos[2] = 0.7 * cos(elevation);
 
-    printf("walk complete\n");
-
     // More complex walk algorithm
     // int i, j, k, pos;
     // vec3 current;
+    // vec3 center, pos;
+    // double  x = camera_history[frame].camPos[0],
+    //         y = camera_history[frame].camPos[1],
+    //         z = camera_history[frame].camPos[2];
 
     // // Get current position
     // VEC(current, x, y, z);
