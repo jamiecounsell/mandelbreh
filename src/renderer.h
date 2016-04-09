@@ -26,7 +26,6 @@
 #include <openacc.h>
 #endif
 
-
 typedef struct 
 {
   int fractalType;

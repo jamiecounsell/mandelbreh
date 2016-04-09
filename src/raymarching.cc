@@ -83,9 +83,8 @@ inline double copysign(double x, double y){
   }else{
     return fabs(x);
   }
-
-
 }
+
 #define SQR(x) ((x)*(x))
 #define COMPONENT_FOLD(x) { (x) = fabs(x) <= 1? (x) : copysign(2,(x))-(x); }
 

@@ -2,13 +2,12 @@ all: serial
 
 CXX      =  g++
 FLAGS    = -O3 -Wall
-CFLAGS   = $(FLAGS)
 CXXFLAGS = $(FLAGS) -DBOX
 LDFLAGS  = -lm
 
 PROGRAM_NAME=mandelbox_serial
 
-OBJS =  main.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o walk.o
+OBJS =  main.o walk.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o
 
 serial: $(OBJS)
 	$(CXX) -o $(PROGRAM_NAME) $? $(CXXFLAGS) $(LDFLAGS)
