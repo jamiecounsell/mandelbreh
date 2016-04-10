@@ -42,12 +42,12 @@ void walk(CameraParams *camera_history,
             int verbose, int frame)
 #endif
 {
-    double inclination = frame/300.0;
-    double correction = frame / 7200.0;
+    double inclination = frame/500.0;
+    double correction = frame / 3600.0;
 
-    camera_history[frame + 1].camPos[0] = 1.6 * cos(inclination);
-    camera_history[frame + 1].camPos[1] = 1.6 * sin(inclination);
-    camera_history[frame + 1].camPos[2] = 0.5 - correction;
+    camera_history[frame + 1].camPos[0] = cos(inclination);
+    camera_history[frame + 1].camPos[1] = sin(inclination);
+    camera_history[frame + 1].camPos[2] = 1 - correction;
 
     init3D(&camera_history[frame + 1], renderer_params);
 }

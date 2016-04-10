@@ -55,11 +55,12 @@ int main(int argc, char** argv)
   int vflag = 0,
       verbose = 1,
       num_of_iterations = 1,
+      start_frame = 0,
       c;
   opterr = 0;
   char * fname = argv[1];
 
-  while ((c = getopt (argc, argv, "hvnf:")) != -1)
+  while ((c = getopt(argc, argv, "hvnf:")) != -1)
     switch (c)
     {
       case 'h':
@@ -69,7 +70,7 @@ int main(int argc, char** argv)
         #else
           printf(" ./mandelbulb ");
         #endif
-        printf("-hvnf\n");
+        printf("-hvnfs\n");
         printf("   -h   : Display this help message\n");
         printf("   -v   : Generate video from frames\n");
         printf("   -n   : Less verbose output\n");
@@ -120,7 +121,7 @@ int main(int argc, char** argv)
     } else { printf("\n\n"); }
   }
 
-  for (frame = 0; frame < num_of_iterations; frame++){
+  for (frame = start_frame; frame < num_of_iterations; frame++){
 
     // Generate unique image name
     char buf[15];
