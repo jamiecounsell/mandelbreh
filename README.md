@@ -40,4 +40,12 @@ where:
 
 * **f** - Instruct the program to generate `n` frames. Default is 1 frame.  
 * **v** - Instruct the program to generate a video when it is complete (calling `genvideo.sh`)
-* **n** - Is a less verbose option. Use this to silence more output.
+
+###Speedups
+
+For the first frame of the submitted video, the following times were recorded:
+
+|Server|OpenACC|time|
+|---|---|---|
+|tesla|NO |108.164557|
+|tesla|YES|1.236812s|
