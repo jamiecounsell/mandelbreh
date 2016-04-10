@@ -2,10 +2,10 @@
 
 ###Authors  
   
-| Name           | Student Number | Email                | Website                                     |
-|:---------------|:---------------|:---------------------|:--------------------------------------------|
-| Jamie Counsell | 1054209        | counsej@mcmaster.ca | [jamiecounsell.me](http://jamiecounsell.me/) |
-| James Priebe | 1135001        | priebejp@mcmaster.ca |  |
+| Name           | Student Number | Email                | Website                                      |
+|:---------------|:---------------|:---------------------|:---------------------------------------------|
+| Jamie Counsell | 1054209        | counsej@mcmaster.ca  | [jamiecounsell.me](http://jamiecounsell.me/) |
+| James Priebe   | 1135001        | priebejp@mcmaster.ca |                                              |
 
 ###Description
 This C program renders a mandelbulb or mandelbox 3D fractal with optimizations in OpenACC.
@@ -26,26 +26,48 @@ $ make [type]
 ```
 Where `type` is one of:
 
-* **mandelbulb** - Generate a Mandelbulb fractal
-* **mandelbox** - Generate a Mandelbox fractal
-* **boxserial** - Generate a Mandelbox fractal using a serial implementation
-* **bulbserial** - Generate a Mandelbulb fractal using a serial implementation
+* **mandelbulb** - Compute a Mandelbulb fractal
+* **mandelbox** - Compute a Mandelbox fractal
+* **boxserial** - Compute a Mandelbox fractal using a serial implementation
+* **bulbserial** - Compute a Mandelbulb fractal using a serial implementation
 
 Then run the command with the optional runtime flags:
 
 ```
-$ ./mandel[box, bulb, bulb_serial, box_serial] [-f n] [-v] [-n]
+$ ./mandel[box, bulb, bulb_serial, box_serial] params.dat [-f n] [-v]
 ```
 where:
 
+* **params.dat** is a file containing the Mandelbulb or Mandelbox parameters. 
 * **f** - Instruct the program to generate `n` frames. Default is 1 frame.  
 * **v** - Instruct the program to generate a video when it is complete (calling `genvideo.sh`)
+
+For example, to generate a 7200 frame video at 30FPS (4 minutes) uwisng the mandelbulb:
+
+```
+$ ./mandelbulb bulb_params.dat -f 7200 -v
+```
 
 ###Speedups
 
 For the first frame of the submitted video, the following times were recorded:
 
-|Server|OpenACC|time|
-|---|---|---|
-|tesla|NO |108.164557|
-|tesla|YES|1.236812s|
+|Server|OpenACC|time      |
+|------|-------|----------|
+|tesla |NO     |108.16456s|
+|tesla |YES    |1.236812s |
+
+###Parallelization
+The only region that was parallelized was the nested loop in `renderer.cc`. This loop is the program's largest bottleneck and also supports parallelization quite intuitively. OpenACC pragmas were used to identify the region as an OpenACC compute region, as well as transfer the data to the device from the host. The outer loop was explicitly marked as parallel, and other optimizations were left up to PGCC.  
+
+Since frame parameters were not generated asynchronously, no parallelization was done to compute more than one frame at a time.
+
+###Frame Generation
+Frames are generated sequentially from an array of `CameraParams` structures. The first image generated is always the same as what is identified in the input parameters. This ensures that the assignment requirements can be properly met with the given `paramsBulb.dat` file. After the first image, the camera rotates around the 
+
+###Final Result
+
+
+###Source Code
+
+See attached.
