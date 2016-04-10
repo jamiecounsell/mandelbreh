@@ -113,7 +113,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
     camera_params.viewport[3]
   };
 
-
+  printf("(%lf, %lf, %lf)\n",camera_params.camPos[0], camera_params.camPos[1], camera_params.camPos[2]);
   #ifdef BULB
 
     // MANDELBULB PARAMS

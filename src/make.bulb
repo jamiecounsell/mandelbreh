@@ -7,7 +7,7 @@ CFLAGS   = $(FLAGS)
 CXXFLAGS = $(GPUFLAGS) -DBULB
 LDFLAGS  = $(FLAGS)
 
-PROGRAM_NAME=mandelbulb
+PROGRAM_NAME=mandelbulb2
 
 OBJS =  main.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o walk.o
 

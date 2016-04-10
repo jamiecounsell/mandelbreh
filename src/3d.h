@@ -29,6 +29,7 @@
 #include "camera.h"
 #include "renderer.h"
 
+void init3D(CameraParams *camP, const RenderParams *renP);
 
 void   LoadIdentity   (double *matrix);
 void   Perspective    (double fov, double aspect, double zNear, double zFar, double *projMatrix);
