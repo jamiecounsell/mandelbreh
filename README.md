@@ -63,7 +63,16 @@ The only region that was parallelized was the nested loop in `renderer.cc`. This
 Since frame parameters were not generated asynchronously, no parallelization was done to compute more than one frame at a time.
 
 ###Frame Generation
-Frames are generated sequentially from an array of `CameraParams` structures. The first image generated is always the same as what is identified in the input parameters. This ensures that the assignment requirements can be properly met with the given `paramsBulb.dat` file. After the first image, the camera rotates around the 
+Frames are generated sequentially from an array of `CameraParams` structures. The first image generated is always the same as what is identified in the input parameters. This ensures that the assignment requirements can be properly met with the given `paramsBulb.dat` file. After the first image, the camera rotates around the fractal, slowly decreasing its position in the `z` axis from `1` to `-1` across 7200 frames. The position is computed as follows:
+
+* the `x` coordinate is `cos(frame_number/500)`
+* the `y` coordinate is `sin(frame_number/500)`
+* the `z` coordinate is `1 - (frame_number/3600)`
+
+This will guide the camera around the object in a circular motion along the `x, y` plane such that it will complete one full rotation every `500*pi` frames. The z value decreases individually from `1` to `-1` between frames `0` and `7200`, respectively. This creates a sort of _spring_ path, showcasing all sides of the fractal.
+
+Each iteration, `init3D` is called again to ensure the camera is still facing the center point at `(0,0,0)`.
+
 
 ###Final Result
 
