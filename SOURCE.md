@@ -1,6 +1,121 @@
 #Source Code
 ##4F03 Project
 The files of most interest are `walk.cc`, `walk.h`, `raymarching.cc`, and `renderer.cc`.
+
+###makefile
+
+```makefile
+all: mandelbox
+
+clean:
+	rm -f *.o mandelbulb mandelbox boxserial bulbserial *~
+
+bulbserial:
+	make -f make.serial_bulb
+
+boxserial:
+	make -f make.serial_box
+
+mandelbulb:
+	make -f make.bulb
+
+mandelbox:
+	make -f make.box	
+
+```
+
+###make.box
+
+```makefile
+all: box
+
+CXX      =  pgc++
+GPUFLAGS = -fast -acc -ta=tesla,cc35 -Minfo=accel -Minline
+FLAGS    = -O3
+CFLAGS   = $(FLAGS)
+CXXFLAGS = $(GPUFLAGS) -DBOX
+LDFLAGS  = $(FLAGS)
+
+PROGRAM_NAME=mandelbox
+
+OBJS =  main.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o walk.o
+
+box: $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $(PROGRAM_NAME) $? $(LDFLAGS)
+
+clean:
+	rm -f *.o mandelbox *~
+
+```
+
+###make.bulb
+
+```makefile
+all: bulb
+
+CXX      =  pgc++
+GPUFLAGS = -fast -acc -ta=tesla,cc35 -Minfo=accel -Minline
+FLAGS    = -O3
+CFLAGS   = $(FLAGS)
+CXXFLAGS = $(GPUFLAGS) -DBULB
+LDFLAGS  = $(FLAGS)
+
+PROGRAM_NAME=mandelbulb30
+
+OBJS =  main.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o walk.o
+
+bulb: $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $(PROGRAM_NAME) $? $(LDFLAGS)
+
+clean:
+	rm -f *.o mandelbulb *~
+
+```
+
+###make.serial_box
+
+```makefile
+all: serial
+
+CXX      =  g++
+FLAGS    = -O3 -Wall
+CXXFLAGS = $(FLAGS) -DBOX
+LDFLAGS  = -lm
+
+PROGRAM_NAME=boxserial
+
+OBJS =  main.o walk.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o
+
+serial: $(OBJS)
+	$(CXX) -o $(PROGRAM_NAME) $? $(CXXFLAGS) $(LDFLAGS)
+
+clean:
+	rm -f *.o boxserial *~
+
+```
+
+###make.serial_bulb
+
+```makefile
+all: serial
+
+CXX      =  g++
+FLAGS    = -O3 -Wall
+CXXFLAGS = $(FLAGS) -DBULB
+LDFLAGS  = -lm
+
+PROGRAM_NAME=bulbserial
+
+OBJS =  main.o walk.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o
+
+serial: $(OBJS)
+	$(CXX) -o $(PROGRAM_NAME) $? $(CXXFLAGS) $(LDFLAGS)
+
+clean:
+	rm -f *.o bulbserial *~
+
+```
+
 ###3d.cc
 
 ```c
@@ -37,6 +152,15 @@ The files of most interest are `walk.cc`, `walk.h`, `raymarching.cc`, and `rende
 #endif
 
 
+// CHANGES FOR OPENACC
+// MultiplyMatrixByVector is now inlined to avoid a calling depth greater than one
+// UnProject takes explicit camera parameters rather than passing a structure
+// int[3] array has been replaced by a vec3 struct due to problems with OpenACC
+//    being unable to privatize the array
+// Remaining functions are unchanged
+
+
+
 inline void MultiplyMatrixByVector(double *resultvector, const double *matrix, double *pvector)
 {
   resultvector[0]=matrix[0]*pvector[0]+matrix[4]*pvector[1]+matrix[8]*pvector[2]+matrix[12]*pvector[3];
@@ -46,10 +170,9 @@ inline void MultiplyMatrixByVector(double *resultvector, const double *matrix, d
 }
 
 //---------------------------------------------------------------------------------------------
-//when projection and modelview matricies are static (computed only once, and camera does not mover)
+//when projection and modelview matricies are static (computed only once, and camera does not move)
 #pragma acc routine seq
 void UnProject(double winX, double winY, const int viewport[4], const double matInvProjModel[16], vec3 &obj)//double *obj)
-//void UnProject(double winX, double winY, CameraParams camP, vec3 &obj)//double *obj)
 {
   
   //Transformation vectors
@@ -78,13 +201,14 @@ void UnProject(double winX, double winY, const int viewport[4], const double mat
 
 }
 
+// END OPENACC CHANGES
 
 void LoadIdentity(double *matrix){
   matrix[0] = 1.0;
   matrix[1] = 0.0;
   matrix[2] = 0.0;
   matrix[3] = 0.0;
-    
+	
   matrix[4] = 0.0;
   matrix[5] = 1.0;
   matrix[6] = 0.0;
@@ -94,7 +218,7 @@ void LoadIdentity(double *matrix){
   matrix[9] = 0.0;
   matrix[10] = 1.0;
   matrix[11] = 0.0;
-    
+	
   matrix[12] = 0.0;
   matrix[13] = 0.0;
   matrix[14] = 0.0;
@@ -379,12 +503,12 @@ int InvertMatrix(double *m, double *out){
   /* last check */
   if (0.0 == r3[3])
     return 0;
-  s = 1.0 / r3[3];      /* now back substitute row 3 */
+  s = 1.0 / r3[3];		/* now back substitute row 3 */
   r3[4] *= s;
   r3[5] *= s;
   r3[6] *= s;
   r3[7] *= s;
-  m2 = r2[3];           /* now back substitute row 2 */
+  m2 = r2[3];			/* now back substitute row 2 */
   s = 1.0 / r2[2];
   r2[4] = s * (r2[4] - r3[4] * m2), r2[5] = s * (r2[5] - r3[5] * m2),
     r2[6] = s * (r2[6] - r3[6] * m2), r2[7] = s * (r2[7] - r3[7] * m2);
@@ -394,14 +518,14 @@ int InvertMatrix(double *m, double *out){
   m0 = r0[3];
   r0[4] -= r3[4] * m0, r0[5] -= r3[5] * m0,
     r0[6] -= r3[6] * m0, r0[7] -= r3[7] * m0;
-  m1 = r1[2];           /* now back substitute row 1 */
+  m1 = r1[2];			/* now back substitute row 1 */
   s = 1.0 / r1[1];
   r1[4] = s * (r1[4] - r2[4] * m1), r1[5] = s * (r1[5] - r2[5] * m1),
     r1[6] = s * (r1[6] - r2[6] * m1), r1[7] = s * (r1[7] - r2[7] * m1);
   m0 = r0[2];
   r0[4] -= r2[4] * m0, r0[5] -= r2[5] * m0,
     r0[6] -= r2[6] * m0, r0[7] -= r2[7] * m0;
-  m0 = r0[1];           /* now back substitute row 0 */
+  m0 = r0[1];			/* now back substitute row 0 */
   s = 1.0 / r0[0];
   r0[4] = s * (r0[4] - r1[4] * m0), r0[5] = s * (r0[5] - r1[5] * m0),
     r0[6] = s * (r0[6] - r1[6] * m0), r0[7] = s * (r0[7] - r1[7] * m0);
@@ -575,8 +699,9 @@ typedef struct
 
 ###genvideo.sh
 
-```c
+```bash
 #!/bin/bash
+# script called if -v flag is present. Stitches together all frames after they have been rendered
 cd ../frames;
 echo -n "Generating video. This may take a while...  "
 rename 's/\d+/sprintf("%05d",$&)/e' *.bmp
@@ -618,6 +743,13 @@ echo "done."
 #include <accelmath.h>
 #endif
 
+// CHANGES FOR OPENACC
+// lighting is now inlined to avoid a calling depth greater than one
+// getcolor takes explicit renderer parameters rather than passing a structure
+
+
+// 3 new color schemes can be specified in the params file.
+
 
 inline void lighting(const vec3 &n, const vec3 &color, const vec3 &pos, const vec3 &direction,  vec3 &outV)
 {
@@ -637,7 +769,7 @@ inline void lighting(const vec3 &n, const vec3 &color, const vec3 &pos, const ve
 
 #pragma acc routine seq
 void getcolor(const pixelData &pixData, const int colorType, const float brightness, //const RenderParams render_params,
-           const vec3 &from, const vec3  &direction, vec3 &result)
+	       const vec3 &from, const vec3  &direction, vec3 &result)
 {
 
   /* COLOR SCHEMES 
@@ -662,24 +794,24 @@ void getcolor(const pixelData &pixData, const int colorType, const float brightn
       
       //add normal based coloring
       if(0 <= colorType <= 4)
-        {
+    	{
         
         hitColor.x = (hitColor.x * pixData.normal.x + 1.0)/2.0 * brightness;
         hitColor.y = (hitColor.y * pixData.normal.y + 1.0)/2.0 * brightness;
         hitColor.z = (hitColor.z * pixData.normal.z + 1.0)/2.0 * brightness;
 
-          //gamma correction
-          v_clamp(hitColor, 0.0, 1.0);
+    	  //gamma correction
+    	  v_clamp(hitColor, 0.0, 1.0);
         SQUARE(hitColor);
 
-        }
+    	}
       if(colorType == 1)
-        {
-          //"swap" colors
-          double t = hitColor.x;
-          hitColor.x = hitColor.z;
-          hitColor.z = t;
-        } else if (colorType == 2)
+    	{
+    	  //"swap" colors
+    	  double t = hitColor.x;
+    	  hitColor.x = hitColor.z;
+    	  hitColor.z = t;
+    	} else if (colorType == 2)
       {
         // red filter
         hitColor.x = 0.0;
@@ -735,6 +867,14 @@ void getcolor(const pixelData &pixData, const int colorType, const float brightn
 
 static char buf[BUF_SIZE];
 
+
+// CHANGES FOR OPENACC
+// Parameters are now explicitly different for MandelBox and MandelBulb. The .dat files themselves
+//    are still interchangeable
+// i.e., rMin and rMax are named escape_time and power for a bulb
+// The appropriate parameter struct is populated depending on compiler flag -DBULB or -DBOX
+
+
 #ifdef BULB
 void getParameters(char *filename, CameraParams *camP, RenderParams *renP, MandelBulbParams *bulbP)
 #else
@@ -767,76 +907,76 @@ void getParameters(char *filename, CameraParams *camP, RenderParams *renP, Mande
       if (ret == EOF) break;
       
       if(buf[0] == '#') // comment line
-    continue;
+	continue;
       
       switch(count)
-    {
-      // CAMERA
-      //camera position
-    case 0:
-      d = camP->camPos;
-      sscanf(buf, "%lf %lf %lf", d, d+1, d+2);
-      break;
-    case 1:
-      //camera target
-      d = camP->camTarget;
-      sscanf(buf, "%lf %lf %lf", d, d+1, d+2);
-      break;
-      //camera up 
-    case 2:
-      d = camP->camUp;
-      sscanf(buf, "%lf %lf %lf", d, d+1, d+2);
-      break;
-      //field of view
-    case 3:
-      sscanf(buf, "%lf", &camP->fov);
-      break;
-      
-      //IMAGE
-      //width, height
-    case 4:
-      sscanf(buf, "%d %d", &renP->width, &renP->height);
-      break;
-      //detail
-    case 5:
-      sscanf(buf, "%f", &renP->detail);
-      break;
-      
-      //FRACTAL
-    case 6:
+	{
+	  // CAMERA
+	  //camera position
+	case 0:
+	  d = camP->camPos;
+	  sscanf(buf, "%lf %lf %lf", d, d+1, d+2);
+	  break;
+	case 1:
+	  //camera target
+	  d = camP->camTarget;
+	  sscanf(buf, "%lf %lf %lf", d, d+1, d+2);
+	  break;
+	  //camera up 
+	case 2:
+	  d = camP->camUp;
+	  sscanf(buf, "%lf %lf %lf", d, d+1, d+2);
+	  break;
+	  //field of view
+	case 3:
+	  sscanf(buf, "%lf", &camP->fov);
+	  break;
+	  
+	  //IMAGE
+	  //width, height
+	case 4:
+	  sscanf(buf, "%d %d", &renP->width, &renP->height);
+	  break;
+	  //detail
+	case 5:
+	  sscanf(buf, "%f", &renP->detail);
+	  break;
+	  
+	  //FRACTAL
+	case 6:
     // box: scale, rmin, rfixed
     // bulb: IGNORE, escape time(bailout), power
-      //sscanf(buf, "%f %f %f", &boxP->scale, &boxP->rMin, &boxP->rFixed);
+	  //sscanf(buf, "%f %f %f", &boxP->scale, &boxP->rMin, &boxP->rFixed);
   #ifdef BULB
-    sscanf(buf, "%*f %f %f", &bulbP->escape_time, &bulbP->power);
+ 	sscanf(buf, "%*f %f %f", &bulbP->escape_time, &bulbP->power);
   #else
     sscanf(buf, "%f %f %f", &boxP->scale, &boxP->rMin, &boxP->rFixed);
   #endif
     break;
-      
-    case 7:
-      //sscanf(buf, "%d %f ", &boxP->num_iter, &boxP->escape_time);
+	  
+	case 7:
+	  //sscanf(buf, "%d %f ", &boxP->num_iter, &boxP->escape_time);
     // bulb: max iterations, IGNORE
   #ifdef BULB
     sscanf(buf, "%d %*f ", &bulbP->num_iter);
-  #else   
+  #else	  
     sscanf(buf, "%d %f ", &boxP->num_iter, &boxP->escape_time);
   #endif
     break;
-      
-      //COLORING 
-    case 8:
-      sscanf(buf, "%d", &renP->colorType);
-      break;
-    case 9:
+	  
+	  //COLORING 
+	case 8:
+	  sscanf(buf, "%d", &renP->colorType);
+	  break;
+	case 9:
     // brightness
-      sscanf(buf, "%f ", &renP->brightness);
-      break;
-      //FILENAME
-    case 10:
-      strcpy(renP->file_name, buf);
-      break;
-    }
+	  sscanf(buf, "%f ", &renP->brightness);
+	  break;
+	  //FILENAME
+	case 10:
+	  strcpy(renP->file_name, buf);
+	  break;
+	}
       count++;
     }
   fclose(fp);
@@ -872,6 +1012,8 @@ void getParameters(char *filename, CameraParams *camP, RenderParams *renP, Mande
 #include "camera.h"
 #include "renderer.h"
 #include "3d.h"
+
+//UNCHANGED FOR OPENACC
 
 void init3D(CameraParams *camP, const RenderParams *renP)
 {
@@ -933,10 +1075,13 @@ void init3D(CameraParams *camP, const RenderParams *renP)
 #include "walk.h"
 #include <unistd.h>
 
+
+//Compiler flags -DBULB or -DBOX
+
 #ifdef BULB
 
 void getParameters(char *filename, CameraParams *camera_params, RenderParams *renderer_params,
-           MandelBulbParams *mandelBulb_paramsP);
+		   MandelBulbParams *mandelBulb_paramsP);
 void renderFractal(const CameraParams camera_params, const RenderParams renderer_params, 
                   const MandelBulbParams bulb_params, unsigned char* image, int frame);
 MandelBulbParams mandelBulb_params;
@@ -1036,6 +1181,8 @@ int main(int argc, char** argv)
       printf("Rendering frame: %d\n", frame);
     }
 
+    // Compute the next camera position and render the frame
+    // All Parallelization is in renderFractal
     #ifdef BULB
       // Mandelbulb
       walk(camera_history, &renderer_params, &mandelBulb_params, verbose, frame);
@@ -1060,120 +1207,6 @@ int main(int argc, char** argv)
 
   return 0;
 }
-
-```
-
-###makefile
-
-```makefile
-all: mandelbox
-
-clean:
-    rm -f *.o mandelbulb mandelbox boxserial bulbserial *~
-
-bulbserial:
-    make -f make.serial_bulb
-
-boxserial:
-    make -f make.serial_box
-
-mandelbulb:
-    make -f make.bulb
-
-mandelbox:
-    make -f make.box    
-
-```
-
-###make.box
-
-```makefile
-all: box
-
-CXX      =  pgc++
-GPUFLAGS = -fast -acc -ta=tesla,cc30 -Minfo=accel -Minline
-FLAGS    = -O3
-CFLAGS   = $(FLAGS)
-CXXFLAGS = $(GPUFLAGS) -DBOX
-LDFLAGS  = $(FLAGS)
-
-PROGRAM_NAME=mandelbox
-
-OBJS =  main.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o walk.o
-
-box: $(OBJS)
-    $(CXX) $(CXXFLAGS) -o $(PROGRAM_NAME) $? $(LDFLAGS)
-
-clean:
-    rm -f *.o mandelbox *~
-
-```
-
-###make.bulb
-
-```makefile
-all: bulb
-
-CXX      =  pgc++
-GPUFLAGS = -fast -acc -ta=tesla,cc30 -Minfo=accel -Minline
-FLAGS    = -O3
-CFLAGS   = $(FLAGS)
-CXXFLAGS = $(GPUFLAGS) -DBULB
-LDFLAGS  = $(FLAGS)
-
-PROGRAM_NAME=mandelbulb30
-
-OBJS =  main.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o walk.o
-
-bulb: $(OBJS)
-    $(CXX) $(CXXFLAGS) -o $(PROGRAM_NAME) $? $(LDFLAGS)
-
-clean:
-    rm -f *.o mandelbulb *~
-
-```
-
-###make.serial_box
-
-```makefile
-all: serial
-
-CXX      =  g++
-FLAGS    = -O3 -Wall
-CXXFLAGS = $(FLAGS) -DBOX
-LDFLAGS  = -lm
-
-PROGRAM_NAME=boxserial
-
-OBJS =  main.o walk.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o
-
-serial: $(OBJS)
-    $(CXX) -o $(PROGRAM_NAME) $? $(CXXFLAGS) $(LDFLAGS)
-
-clean:
-    rm -f *.o boxserial *~
-
-```
-
-###make.serial_bulb
-
-```makefile
-all: serial
-
-CXX      =  g++
-FLAGS    = -O3 -Wall
-CXXFLAGS = $(FLAGS) -DBULB
-LDFLAGS  = -lm
-
-PROGRAM_NAME=bulbserial
-
-OBJS =  main.o walk.o print.o timing.o savebmp.o getparams.o 3d.o getcolor.o raymarching.o renderer.o init3D.o
-
-serial: $(OBJS)
-    $(CXX) -o $(PROGRAM_NAME) $? $(CXXFLAGS) $(LDFLAGS)
-
-clean:
-    rm -f *.o bulbserial *~
 
 ```
 
@@ -1245,6 +1278,7 @@ typedef struct {
 #include <openacc.h>
 #endif
 
+// Distinct from box parameters
 
 typedef struct {
   float escape_time;
@@ -1344,6 +1378,10 @@ void printProgress( double perc, double time , int frame)
 #include <math.h>
 #endif
 
+//CHANGES FOR OPENACC
+//DE is now inlined to avoid a calling depth greater than one
+//Seperate functions for bulb and box 
+
 
 #ifdef BULB //bulb DE
 
@@ -1355,8 +1393,8 @@ inline double DE(const vec3 &p0,
   double dr = 1.0;
   double r = 0.0;
 
-  double Bailout = escape_time;//params.rMin;
-  double Power = power;//params.rFixed;
+  double Bailout = escape_time;
+  double Power = power;
 
   for (int i=0; i < num_iter; i++) 
     {
@@ -1383,9 +1421,9 @@ inline double DE(const vec3 &p0,
   return 0.5*log(r)*r/dr;
 }
 
-#else // BOX DE + macros, copysign function used within
+#else // BOX DE + macros, copysign function
 
-//copysign(x, y) : magnitude x, sign of y
+// duplication of math lib copysign unavailable in OpenACC
 inline double copysign(double x, double y){
 
   if(y < -0.00000000000001){
@@ -1401,7 +1439,6 @@ inline double copysign(double x, double y){
 inline double DE(const vec3 &p0, const int num_iter, const float rMin, 
   const float rFixed, const float escape_time, const float scale, double c1, double c2)
 {
-
 
   vec3 p = p0;
   double rMin2   = SQR(rMin);
@@ -1455,6 +1492,7 @@ inline double DE(const vec3 &p0, const int num_iter, const float rMin,
 
 
 // RAYMARCH
+// all renderer, camera, and box/bulb params are passed explicitly
 
 #ifdef BULB
 #pragma acc routine seq
@@ -1532,20 +1570,19 @@ double rayMarch(const int maxRaySteps, const float maxDistance,
 
       // compute the normal at p
       double eps;
-      MAGNITUDE(eps, normPos) ;// std::max( p.Magnitude(), 1.0 )*sqrt_mach_eps;
+      MAGNITUDE(eps, normPos) ;
       eps = MAX(eps, 1.0);
       eps *= sqrt_mach_eps;
 
+      // precompute the vectors passed to DE
       vec3 e1 = {eps, 0, 0}; 
       vec3 e2 = {0, eps, 0}; 
       vec3 e3 = {0, 0, eps}; 
-
       vec3 vs1, vs2, vs3;
       vec3 vd1, vd2, vd3;
       VECTOR_SUM(vs1, normPos,e1);
       VECTOR_SUM(vs2, normPos,e2);
       VECTOR_SUM(vs3, normPos,e3);
-
       VECTOR_DIFF(vd1, normPos, e1);
       VECTOR_DIFF(vd2, normPos, e2);
       VECTOR_DIFF(vd3, normPos, e3);
@@ -1616,6 +1653,12 @@ double rayMarch(const int maxRaySteps, const float maxDistance,
 #include <openacc.h>
 #endif
 
+// All parallelization is done in renderFractal
+// raymarch, getcolor, and unproject are sequential openacc routines
+// vec3 has been converted from class to struct with macros (see vector3d.h)
+// The cost for distinct Mandelbulb and Mandelbox params is duplicate method signatures
+// Specified with -DBULB or -DBOX compiler flag
+
 extern double getTime();
 extern void   printProgress( double perc, double time, int frame );
 
@@ -1648,6 +1691,8 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
 #endif
 {
   // DIRECTION, COLOR, PIXEL ARRAYS
+  // OpenACC has problems with incorrectly sharing structs
+  // Solved by creating struct array (one per pixel, or loop iteration) that is shared in parallel region 
   int size = renderer_params.width * renderer_params.height;
 #ifdef _OPENACC
     vec3* direction = (vec3*)acc_malloc(size * sizeof(vec3));
@@ -1658,6 +1703,9 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
     pixelData* pixel = (pixelData*)malloc(size * sizeof(pixelData));
     vec3* color = (vec3*)malloc(size * sizeof(vec3));
 #endif
+
+  // All parameters are explicitly copied into ACC device region
+  // parameter structs are no longer passed as function arguments
 
   // RENDERER PARAMS
   const int colorType = renderer_params.colorType;
@@ -1698,8 +1746,10 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
   };
 
   printf("(%lf, %lf, %lf)\n",camera_params.camPos[0], camera_params.camPos[1], camera_params.camPos[2]);
-  #ifdef BULB
 
+  // copy bulb/box params into device region
+
+  #ifdef BULB
     // MANDELBULB PARAMS
     const  float escape_time =   bulb_params.escape_time;
     const float power =  bulb_params.power;
@@ -1729,7 +1779,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
 
   #endif
 
-  // DATA COPY
+  // Copy in image, remaining parameters, and vec3 arrays
   #pragma acc data present_or_copy(image[0:size*3]),   \
   pcopyin(                 \
     camPos[:3],      \
@@ -1761,6 +1811,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
   const int cwidth = width;
 
   int i,j;
+  // total of three parallel pragmas + external routine pragmas
   #pragma acc parallel 
   #pragma acc loop
   for(j = 0; j < cheight; j++)
@@ -1770,15 +1821,19 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
     {
       
       int k, l;
+      //vec3 array index
       l = (j * width + i );
 
   	  // get point on the 'far' plane
-      UnProject(i, j, viewport, matInvProjModel, direction[l]);//farPoint);
+      // acc routine
+      UnProject(i, j, viewport, matInvProjModel, direction[l]);
   	  
       SUBTRACT_DOUBLE_ARRAY(direction[l], camPos);
       NORMALIZE( direction[l] );	  
   	  
       //render the pixel
+      //acc routine
+      //difference in box/bulb is the distance estimator used by raymarch
       #ifdef BULB
       rayMarch(maxRaySteps, maxDistance, escape_time, power, num_iter, from, direction[l], eps, pixel[l]); 
       #else
@@ -1805,6 +1860,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
   }// END DEVICE DATA REGION
 
   #ifdef _OPENACC
+    // free memory used by acc for vec3 arrays
     acc_free(direction);
     acc_free(pixel);
     acc_free(color);
@@ -1812,6 +1868,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
 }
 
 ```
+
 ###renderer.h
 
 ```c
@@ -1996,33 +2053,33 @@ double getTime() {
 #include <math.h>
 #endif
 
-
+// vec3 has been changed to struct with accompanying macros
 typedef struct 
 {
   double x, y, z;
 }  vec3;
 
+// set vec3 p = v
 #define SET_POINT(p,v) { p.x=v.x; p.y=v.y; p.z=v.z; }
-
+// set vec3 x, y, z to double[0..2]
 #define SET_DOUBLE_POINT(p,v) { p.x=v[0]; p.y=v[1]; p.z=v[2]; }
-
+// set vec3 x,y,z to v[i] - u[i]
 #define SUBTRACT_POINT(p,v,u)			\
   {						\
   p.x=(v[0])-(u[0]);				\
   p.y=(v[1])-(u[1]);				\
   p.z=(v[2])-(u[2]);				\
 }
-
+// x,y,z = x,y,z - double[0..2]
 #define SUBTRACT_DOUBLE_ARRAY(v, d) {v.x = v.x - d[0]; v.y = v.y - d[1]; v.z = v.z - d[2];  }
-
+// (x,y,z)^2
 #define SQUARE(p)\
 	{\
 		p.x = p.x * p.x; \
 		p.y = p.y * p.y; \
 		p.z = p.z * p.z; \
 	}
-
-
+// normalize vector
 #define NORMALIZE(p) {					\
     double fMag = ( p.x*p.x + p.y*p.y + p.z*p.z );	\
     if (fMag != 0)					\
@@ -2033,18 +2090,16 @@ typedef struct
 	p.z *= fMult;					\
       }							\
   }
-
-
+// x*p, y*q, z*r
 #define MULTIPLY_BY_VECTOR(v, p) ( { v.x = v.x*p.x; v.y = v.y*p.y; v.z = v.z*p.z; } )
+// x,y,z * d
 #define MULTIPLY_BY_DOUBLE(v, d) ( { v.x = v.x*d; v.y = v.y*d; v.z = v.z*d; } )
-
-
+// get vector magnitude
 #define MAGNITUDE(m,p) 	({ m=sqrt( p.x*p.x + p.y*p.y + p.z*p.z ); })
-
+// vector dot product
 #define DOT(d,p) ({  d= p.x*p.x + p.y*p.y + p.z*p.z ; })
-
 #define MAX(a,b) ( ((a)>(b))? (a):(b) )
-
+// constructor 
 #define VEC(v,a,b,c) { v.x = a; v.y = b; v.z = c; }
 
 
@@ -2054,27 +2109,16 @@ inline double clamp(double d, double min, double max)
   return t > max ? max : t;
 }
 
-inline vec3 vector_sum(vec3 v1, vec3 v2){
-	vec3 result = {v1.x + v2.x, v1.y + v2.y, v1.z + v2.z};
-	return result;
-}
-
-inline vec3 vector_diff(vec3 v1, vec3 v2){
-	vec3 result = {v1.x - v2.x, v1.y - v2.y, v1.z - v2.z};
-	return result;
-}
-
-
+// vector addition and subtraction
 #define VECTOR_SUM(r, v1, v2) {  r.x = v1.x + v2.x; r.y = v1.y + v2.y; r.z = v1.z + v2.z; }
 #define VECTOR_DIFF(r, v1, v2) {  r.x = v1.x - v2.x; r.y = v1.y - v2.y; r.z = v1.z - v2.z; }
-
+// vector clamp
 inline void v_clamp(vec3 &v, double min, double max) 
 {
   v.x = clamp(v.x,min,max);
   v.y = clamp(v.y,min,max);
   v.z = clamp(v.z,min,max);
 }
-
 
 #endif
 
@@ -2094,6 +2138,11 @@ inline void v_clamp(vec3 &v, double min, double max)
 #include "walk.h"
 
 #include <stdio.h>
+
+// Get the next frame to render
+// Computes an orbit around the bulb or box and reinitializes camera to point at center
+// The computed orbit is a spiral following a circular path in the x-y plane with a decreasing z
+// See documentation for full algorithm description
 
 #ifdef BULB
     extern double rayMarch(const int maxRaySteps, const float maxDistance,
@@ -2126,14 +2175,17 @@ void walk(CameraParams *camera_history,
             MandelBoxParams *box_params,
             int verbose, int frame)
 #endif
-{
+{   
+    // full rotation in x,y every 500*pi frames
     double inclination = frame/500.0;
+    // normalize z range from 1 to -1 for 7200 frames
     double correction = frame / 3600.0;
 
     camera_history[frame + 1].camPos[0] = cos(inclination);
     camera_history[frame + 1].camPos[1] = sin(inclination);
     camera_history[frame + 1].camPos[2] = 1 - correction;
 
+    // set camera for the next frame
     init3D(&camera_history[frame + 1], renderer_params);
 }
 
@@ -2163,4 +2215,6 @@ void walk(CameraParams *camera_history,
 #endif
 
 ```
+
+
 
