@@ -57,7 +57,8 @@ For the first frame of the submitted video, the following times were recorded:
 |tesla |NO     |108.16456s|
 |tesla |YES    |1.236812s |
 
-The server was under heavy load during testing, but this shows a significant speedup (~87.5x faster with OpenACC)
+The server was under heavy load during testing, so future results may vary, but this shows a significant speedup (~87.5x faster with OpenACC than without). The same CPU was used to show speedups related purely to OpenACC acceleration.
+
 
 ###Parallelization
 The only region that was parallelized was the nested loop in `renderer.cc`. This loop is the program's largest bottleneck and also supports parallelization quite intuitively. OpenACC pragmas were used to identify the region as an OpenACC compute region, as well as transfer the data to the device from the host. The outer loop was explicitly marked as parallel, and other optimizations were left up to PGCC.
@@ -70,6 +71,7 @@ Early on, we faced an interesting problem (and a great example of the proper use
 
 Since frame parameters were not generated asynchronously, no parallelization was done to compute more than one frame at a time.
 
+
 ###Frame Generation
 Frames are generated sequentially from an array of `CameraParams` structures. The first image generated is always the same as what is identified in the input parameters. This ensures that the assignment requirements can be properly met with the given `paramsBulb.dat` file. After the first image, the camera rotates around the fractal, slowly decreasing its position in the `z` axis from `1` to `-1` across 7200 frames. The position is computed as follows:
 
@@ -81,8 +83,10 @@ This will guide the camera around the object in a circular motion along the `x, 
 
 Each iteration, `init3D` is called again to ensure the camera is still facing the center point at `(0,0,0)`.
 
-###Final Result
+With the exception of the first frame, each subsequent frame's parameters are generated during the previous frame's position in the loop. That is, the parameters for frame `i` are computed before rendering frame `i-1`. An array of `CameraParams` structures are kept in order to keep track of current and previous configurations. One could add support for rendering multiple frames at once, since the configurations are all available in memory. This would be a reasonable next step, and a good use for something like OpenMP.
 
+
+###Final Result
 To compute the final result, the following configuration file (`bulb_params.dat`) was used:
 
 ```
