@@ -31,6 +31,15 @@
 #endif
 
 
+// CHANGES FOR OPENACC
+// MultiplyMatrixByVector is now inlined to avoid a calling depth greater than one
+// UnProject takes explicit camera parameters rather than passing a structure
+// int[3] array has been replaced by a vec3 struct due to problems with OpenACC
+//    being unable to privatize the array
+// Remaining functions are unchanged
+
+
+
 inline void MultiplyMatrixByVector(double *resultvector, const double *matrix, double *pvector)
 {
   resultvector[0]=matrix[0]*pvector[0]+matrix[4]*pvector[1]+matrix[8]*pvector[2]+matrix[12]*pvector[3];
@@ -40,10 +49,9 @@ inline void MultiplyMatrixByVector(double *resultvector, const double *matrix, d
 }
 
 //---------------------------------------------------------------------------------------------
-//when projection and modelview matricies are static (computed only once, and camera does not mover)
+//when projection and modelview matricies are static (computed only once, and camera does not move)
 #pragma acc routine seq
 void UnProject(double winX, double winY, const int viewport[4], const double matInvProjModel[16], vec3 &obj)//double *obj)
-//void UnProject(double winX, double winY, CameraParams camP, vec3 &obj)//double *obj)
 {
   
   //Transformation vectors
@@ -72,6 +80,7 @@ void UnProject(double winX, double winY, const int viewport[4], const double mat
 
 }
 
+// END OPENACC CHANGES
 
 void LoadIdentity(double *matrix){
   matrix[0] = 1.0;

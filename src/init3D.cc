@@ -23,6 +23,8 @@
 #include "renderer.h"
 #include "3d.h"
 
+//UNCHANGED FOR OPENACC
+
 void init3D(CameraParams *camP, const RenderParams *renP)
 {
   //set up the viewport for the image

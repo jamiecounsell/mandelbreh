@@ -32,6 +32,12 @@
 #include <openacc.h>
 #endif
 
+// All parallelization is done in renderFractal
+// raymarch, getcolor, and unproject are sequential openacc routines
+// vec3 has been converted from class to struct with macros (see vector3d.h)
+// The cost for distinct Mandelbulb and Mandelbox params is duplicate method signatures
+// Specified with -DBULB or -DBOX compiler flag
+
 extern double getTime();
 extern void   printProgress( double perc, double time, int frame );
 
@@ -64,6 +70,8 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
 #endif
 {
   // DIRECTION, COLOR, PIXEL ARRAYS
+  // OpenACC has problems with incorrectly sharing structs
+  // Solved by creating struct array (one per pixel, or loop iteration) that is shared in parallel region 
   int size = renderer_params.width * renderer_params.height;
 #ifdef _OPENACC
     vec3* direction = (vec3*)acc_malloc(size * sizeof(vec3));
@@ -74,6 +82,9 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
     pixelData* pixel = (pixelData*)malloc(size * sizeof(pixelData));
     vec3* color = (vec3*)malloc(size * sizeof(vec3));
 #endif
+
+  // All parameters are explicitly copied into ACC device region
+  // parameter structs are no longer passed as function arguments
 
   // RENDERER PARAMS
   const int colorType = renderer_params.colorType;
@@ -114,8 +125,10 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
   };
 
   printf("(%lf, %lf, %lf)\n",camera_params.camPos[0], camera_params.camPos[1], camera_params.camPos[2]);
-  #ifdef BULB
 
+  // copy bulb/box params into device region
+
+  #ifdef BULB
     // MANDELBULB PARAMS
     const  float escape_time =   bulb_params.escape_time;
     const float power =  bulb_params.power;
@@ -145,7 +158,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
 
   #endif
 
-  // DATA COPY
+  // Copy in image, remaining parameters, and vec3 arrays
   #pragma acc data present_or_copy(image[0:size*3]),   \
   pcopyin(                 \
     camPos[:3],      \
@@ -177,6 +190,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
   const int cwidth = width;
 
   int i,j;
+  // total of three parallel pragmas + external routine pragmas
   #pragma acc parallel 
   #pragma acc loop
   for(j = 0; j < cheight; j++)
@@ -186,15 +200,19 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
     {
       
       int k, l;
+      //vec3 array index
       l = (j * width + i );
 
   	  // get point on the 'far' plane
-      UnProject(i, j, viewport, matInvProjModel, direction[l]);//farPoint);
+      // acc routine
+      UnProject(i, j, viewport, matInvProjModel, direction[l]);
   	  
       SUBTRACT_DOUBLE_ARRAY(direction[l], camPos);
       NORMALIZE( direction[l] );	  
   	  
       //render the pixel
+      //acc routine
+      //difference in box/bulb is the distance estimator used by raymarch
       #ifdef BULB
       rayMarch(maxRaySteps, maxDistance, escape_time, power, num_iter, from, direction[l], eps, pixel[l]); 
       #else
@@ -221,6 +239,7 @@ void renderFractal(const CameraParams camera_params, const RenderParams renderer
   }// END DEVICE DATA REGION
 
   #ifdef _OPENACC
+    // free memory used by acc for vec3 arrays
     acc_free(direction);
     acc_free(pixel);
     acc_free(color);

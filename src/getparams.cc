@@ -17,6 +17,14 @@
 
 static char buf[BUF_SIZE];
 
+
+// CHANGES FOR OPENACC
+// Parameters are now explicitly different for MandelBox and MandelBulb. The .dat files themselves
+//    are still interchangeable
+// i.e., rMin and rMax are named escape_time and power for a bulb
+// The appropriate parameter struct is populated depending on compiler flag -DBULB or -DBOX
+
+
 #ifdef BULB
 void getParameters(char *filename, CameraParams *camP, RenderParams *renP, MandelBulbParams *bulbP)
 #else

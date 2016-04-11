@@ -25,6 +25,7 @@
 #include <openacc.h>
 #endif
 
+// Distinct from box parameters
 
 typedef struct {
   float escape_time;

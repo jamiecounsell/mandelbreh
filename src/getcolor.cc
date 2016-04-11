@@ -29,6 +29,13 @@
 #include <accelmath.h>
 #endif
 
+// CHANGES FOR OPENACC
+// lighting is now inlined to avoid a calling depth greater than one
+// getcolor takes explicit renderer parameters rather than passing a structure
+
+
+// 3 new color schemes can be specified in the params file.
+
 
 inline void lighting(const vec3 &n, const vec3 &color, const vec3 &pos, const vec3 &direction,  vec3 &outV)
 {

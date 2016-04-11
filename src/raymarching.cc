@@ -34,6 +34,10 @@
 #include <math.h>
 #endif
 
+//CHANGES FOR OPENACC
+//DE is now inlined to avoid a calling depth greater than one
+//Seperate functions for bulb and box 
+
 
 #ifdef BULB //bulb DE
 
@@ -45,8 +49,8 @@ inline double DE(const vec3 &p0,
   double dr = 1.0;
   double r = 0.0;
 
-  double Bailout = escape_time;//params.rMin;
-  double Power = power;//params.rFixed;
+  double Bailout = escape_time;
+  double Power = power;
 
   for (int i=0; i < num_iter; i++) 
     {
@@ -73,9 +77,9 @@ inline double DE(const vec3 &p0,
   return 0.5*log(r)*r/dr;
 }
 
-#else // BOX DE + macros, copysign function used within
+#else // BOX DE + macros, copysign function
 
-//copysign(x, y) : magnitude x, sign of y
+// duplication of math lib copysign unavailable in OpenACC
 inline double copysign(double x, double y){
 
   if(y < -0.00000000000001){
@@ -91,7 +95,6 @@ inline double copysign(double x, double y){
 inline double DE(const vec3 &p0, const int num_iter, const float rMin, 
   const float rFixed, const float escape_time, const float scale, double c1, double c2)
 {
-
 
   vec3 p = p0;
   double rMin2   = SQR(rMin);
@@ -145,6 +148,7 @@ inline double DE(const vec3 &p0, const int num_iter, const float rMin,
 
 
 // RAYMARCH
+// all renderer, camera, and box/bulb params are passed explicitly
 
 #ifdef BULB
 #pragma acc routine seq
@@ -222,20 +226,19 @@ double rayMarch(const int maxRaySteps, const float maxDistance,
 
       // compute the normal at p
       double eps;
-      MAGNITUDE(eps, normPos) ;// std::max( p.Magnitude(), 1.0 )*sqrt_mach_eps;
+      MAGNITUDE(eps, normPos) ;
       eps = MAX(eps, 1.0);
       eps *= sqrt_mach_eps;
 
+      // precompute the vectors passed to DE
       vec3 e1 = {eps, 0, 0}; 
       vec3 e2 = {0, eps, 0}; 
       vec3 e3 = {0, 0, eps}; 
-
       vec3 vs1, vs2, vs3;
       vec3 vd1, vd2, vd3;
       VECTOR_SUM(vs1, normPos,e1);
       VECTOR_SUM(vs2, normPos,e2);
       VECTOR_SUM(vs3, normPos,e3);
-
       VECTOR_DIFF(vd1, normPos, e1);
       VECTOR_DIFF(vd2, normPos, e2);
       VECTOR_DIFF(vd3, normPos, e3);

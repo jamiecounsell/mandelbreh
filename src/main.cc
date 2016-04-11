@@ -28,6 +28,9 @@
 #include "walk.h"
 #include <unistd.h>
 
+
+//Compiler flags -DBULB or -DBOX
+
 #ifdef BULB
 
 void getParameters(char *filename, CameraParams *camera_params, RenderParams *renderer_params,
@@ -131,6 +134,8 @@ int main(int argc, char** argv)
       printf("Rendering frame: %d\n", frame);
     }
 
+    // Compute the next camera position and render the frame
+    // All Parallelization is in renderFractal
     #ifdef BULB
       // Mandelbulb
       walk(camera_history, &renderer_params, &mandelBulb_params, verbose, frame);
