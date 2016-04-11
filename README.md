@@ -42,10 +42,10 @@ where:
 * **f** - Instruct the program to generate `n` frames. Default is 1 frame.  
 * **v** - Instruct the program to generate a video when it is complete (calling `genvideo.sh`)
 
-For example, to generate a 7200 frame video at 30FPS (4 minutes) uwisng the mandelbulb:
+For example, to generate a 7200 frame video at 30FPS (4 minutes) of the mandelbulb:
 
 ```
-$ ./mandelbulb bulb_params.dat -f 7200 -v
+$ ./mandelbulb params.dat -f 7200 -v
 ```
 
 ###Speedups
@@ -73,9 +73,47 @@ This will guide the camera around the object in a circular motion along the `x, 
 
 Each iteration, `init3D` is called again to ensure the camera is still facing the center point at `(0,0,0)`.
 
-
 ###Final Result
 
+To compute the final result, the following configuration file (`bulb_params.dat`) was used:
+
+```
+# CAMERA
+# location x,y,z (7,7,7)
+1 0 1
+# look at x,y,z
+0 0 0
+# up vector x,y,z; (0, 1, 0)
+0 0 1
+# field of view (1)
+2.0
+# IMAGE
+# width height
+3840 2160
+# detail level, the smaller the more detailed (-3.5)
+-3.45
+# MANDELBULB
+# ignore the first number, 0.
+# the second and third numbers are escape (or bailout) time and power
+0 4.0 9.0
+# ignore the second number; the first number is the max number of iterations
+100 0
+# COLORING
+# type 0 or 1
+0
+# brightness
+1.2
+# IMAGE FILE NAME
+imageBulb.bmp
+```
+
+The command used to generate the result is:
+
+```
+$ ./mandelbulb bulb_params.dat -f 7200 -v
+```
+
+The URL for the video will be available on the GitHub repository and will be sent via email to the course instructor and TAs.
 
 ###Source Code
 
