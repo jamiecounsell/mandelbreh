@@ -57,8 +57,16 @@ For the first frame of the submitted video, the following times were recorded:
 |tesla |NO     |108.16456s|
 |tesla |YES    |1.236812s |
 
+The server was under heavy load during testing, but this shows a significant speedup (~87.5x faster with OpenACC)
+
 ###Parallelization
-The only region that was parallelized was the nested loop in `renderer.cc`. This loop is the program's largest bottleneck and also supports parallelization quite intuitively. OpenACC pragmas were used to identify the region as an OpenACC compute region, as well as transfer the data to the device from the host. The outer loop was explicitly marked as parallel, and other optimizations were left up to PGCC.  
+The only region that was parallelized was the nested loop in `renderer.cc`. This loop is the program's largest bottleneck and also supports parallelization quite intuitively. OpenACC pragmas were used to identify the region as an OpenACC compute region, as well as transfer the data to the device from the host. The outer loop was explicitly marked as parallel, and other optimizations were left up to PGCC.
+
+Functions called inside the compute region were identified as ACC Routines, and any functions called within such routines were inlined, due to the issue mentioned in class, where variables seem to take on a NULL or somewhat undefined value when they are passed to a function called by a Routine, even if that function is also marked as a Routine.
+
+The data structures were flattened to be more easily passed between methods. To accomodate for this, additional parameters were added to the ACC Routines called inside the compute region. All data (including the flattened parameter structures) was explicity copied to the device using data pragmas before the beginning of the compute region.
+
+Early on, we faced an interesting problem (and a great example of the proper use of the `present_or_copy[in, out]` ACC Methods. When image data (`image`) was marked as `copy`, `copyin`, or `copyout`, the compiler would generate code to reallocate `image` on the device each time the compute region began. This is because it has no way to maintain state across compute regions, and is therefore unable to maintain the pointer to `image` without explicitly checking if it is present first (then reuisng it). By adding the `present_or` prefix, we were able to instruct the compiler to not reallocate the memory, and instead overwrite the existing memory allocated for `image`. Since every pixel in `image` is changed before it is copied out, there are no problems here with risk of using old data.
 
 Since frame parameters were not generated asynchronously, no parallelization was done to compute more than one frame at a time.
 
