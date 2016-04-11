@@ -10,6 +10,11 @@
 
 #include <stdio.h>
 
+// Get the next frame to render
+// Computes an orbit around the bulb or box and reinitializes camera to point at center
+// The computed orbit is a spiral following a circular path in the x-y plane with a decreasing z
+// See documentation for full algorithm description
+
 #ifdef BULB
     extern double rayMarch(const int maxRaySteps, const float maxDistance,
       const float escape_time, const float power, const int num_iter,
@@ -41,13 +46,16 @@ void walk(CameraParams *camera_history,
             MandelBoxParams *box_params,
             int verbose, int frame)
 #endif
-{
+{   
+    // full rotation in x,y every 500*pi frames
     double inclination = frame/500.0;
+    // normalize z range from 1 to -1 for 7200 frames
     double correction = frame / 3600.0;
 
     camera_history[frame + 1].camPos[0] = cos(inclination);
     camera_history[frame + 1].camPos[1] = sin(inclination);
     camera_history[frame + 1].camPos[2] = 1 - correction;
 
+    // set camera for the next frame
     init3D(&camera_history[frame + 1], renderer_params);
 }
