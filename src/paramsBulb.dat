@@ -1,0 +1,27 @@
+# CAMERA
+# location x,y,z (7,7,7)
+1.2 .26 .2
+# look at x,y,z
+0 0 0
+# up vector x,y,z; (0, 1, 0)
+0 1 0
+# field of view (1)
+2.0
+# IMAGE
+# width height
+1080 1080
+# detail level, the smaller the more detailed (-3.5)
+-3.0
+# MANDELBULB
+# ignore the first number, 0.
+# the second and third numbers are escape (or bailout) time and power
+0 4.0 8.0
+# ignore the second number; the first number is the max number of iterations
+100 0
+# COLORING
+# type 0 or 1
+1
+# brightness
+1.2
+# IMAGE FILE NAME
+imageBulb.bmp

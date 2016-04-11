@@ -48,6 +48,22 @@ For example, to generate a 7200 frame video at 30FPS (4 minutes) of the mandelbu
 $ ./mandelbulb params.dat -f 7200 -v
 ```
 
+To generate the mandelbulb given in the assignment, one can use the command:
+
+```
+$ make clean; make mandelbulb
+$ ./mandelbulb paramsBulb.dat
+```
+
+OR the serial version:
+
+```
+$ make clean; make bulbserial
+$ ./bulbserial paramsBulb.dat
+```
+
+The resulting images will be in the frames directory as `00000.bmp`. The filename used in the parameters is not used here to follow convention and ensure this frame can be used in the video.
+
 ###Speedups
 
 For the first frame of the submitted video, the following times were recorded:

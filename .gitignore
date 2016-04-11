@@ -12,5 +12,7 @@ _notes/
 .~*
 src/mandelbulb
 src/mandelbox
+src/bulbserial
+src/boxserial
 box/mandelbox
 box/mandelbulb
