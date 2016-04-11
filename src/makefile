@@ -1,13 +1,16 @@
-all: box
+all: mandelbox
 
 clean:
-	rm -f *.o mandelbulb mandelbox *~
+	rm -f *.o mandelbulb mandelbox boxserial bulbserial *~
 
-serial:
-	make -f make.serial
+bulbserial:
+	make -f make.serial_bulb
 
-bulb:
+boxserial:
+	make -f make.serial_box
+
+mandelbulb:
 	make -f make.bulb
 
-box:
+mandelbox:
 	make -f make.box	
