@@ -26,10 +26,10 @@ $ make [type]
 ```
 Where `type` is one of:
 
-* **mandelbulb** - Compute a Mandelbulb fractal
-* **mandelbox** - Compute a Mandelbox fractal
-* **boxserial** - Compute a Mandelbox fractal using a serial implementation
-* **bulbserial** - Compute a Mandelbulb fractal using a serial implementation
+* **`mandelbulb`** - Compute a Mandelbulb fractal
+* **`mandelbox`** - Compute a Mandelbox fractal
+* **`boxserial`** - Compute a Mandelbox fractal using a serial implementation
+* **`bulbserial`** - Compute a Mandelbulb fractal using a serial implementation
 
 Then run the command with the optional runtime flags:
 
