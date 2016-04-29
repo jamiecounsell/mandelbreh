@@ -141,8 +141,4 @@ The command used to generate the result is:
 $ ./mandelbulb bulb_params.dat -f 7200 -v
 ```
 
-The URL for the video will be available on the GitHub repository and will be sent via email to the course instructor and TAs.
-
-###Source Code
-
-See attached.
+[![Mandelbreh](https://img.youtube.com/vi/-M6VuRQIAAs/0.jpg)](https://www.youtube.com/watch?v=-M6VuRQIAAs)
