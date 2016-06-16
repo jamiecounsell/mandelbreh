@@ -1,4 +1,4 @@
-##4F03 Project
+##Mandelbreh
 
 ###Authors  
   
