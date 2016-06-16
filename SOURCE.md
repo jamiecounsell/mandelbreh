@@ -1,5 +1,4 @@
 #Source Code
-##4F03 Project
 The files of most interest are `walk.cc`, `walk.h`, `raymarching.cc`, and `renderer.cc`.
 
 ###makefile
