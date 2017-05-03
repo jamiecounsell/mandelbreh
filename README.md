@@ -1,23 +1,23 @@
-##Mandelbreh
+## Mandelbreh
 
-###Authors  
+### Authors  
   
 | Name           | Student Number | Email                | Website                                      |
 |:---------------|:---------------|:---------------------|:---------------------------------------------|
 | Jamie Counsell | 1054209        | counsej@mcmaster.ca  | [jamiecounsell.me](http://jamiecounsell.me/) |
 | James Priebe   | 1135001        | priebejp@mcmaster.ca |                                              |
 
-###Description
+### Description
 This C program renders a mandelbulb or mandelbox 3D fractal with optimizations in OpenACC.
 
-###Dependencies
+### Dependencies
 - `pgcc` or compiler with support for OpenACC
 
-###Installation
+### Installation
 - Install the dependencies
 - Clone the repository
 
-###Operation
+### Operation
 To run the program, first run make:
 
 ```
@@ -64,7 +64,7 @@ $ ./bulbserial paramsBulb.dat
 
 The resulting images will be in the frames directory as `00000.bmp`. The filename used in the parameters is not used here to follow convention and ensure this frame can be used in the video.
 
-###Speedups
+### Speedups
 
 For the first frame of the submitted video, the following times were recorded:
 
@@ -76,7 +76,7 @@ For the first frame of the submitted video, the following times were recorded:
 The server was under heavy load during testing, so future results may vary, but this shows a significant speedup (~87.5x faster with OpenACC than without). The same CPU was used to show speedups related purely to OpenACC acceleration.
 
 
-###Parallelization
+### Parallelization
 The only region that was parallelized was the nested loop in `renderer.cc`. This loop is the program's largest bottleneck and also supports parallelization quite intuitively. OpenACC pragmas were used to identify the region as an OpenACC compute region, as well as transfer the data to the device from the host. The outer loop was explicitly marked as parallel, and other optimizations were left up to PGCC.
 
 Functions called inside the compute region were identified as ACC Routines, and any functions called within such routines were inlined, due to the issue mentioned in class, where variables seem to take on a NULL or somewhat undefined value when they are passed to a function called by a Routine, even if that function is also marked as a Routine.
@@ -88,7 +88,7 @@ Early on, we faced an interesting problem (and a great example of the proper use
 Since frame parameters were not generated asynchronously, no parallelization was done to compute more than one frame at a time.
 
 
-###Frame Generation
+### Frame Generation
 Frames are generated sequentially from an array of `CameraParams` structures. The first image generated is always the same as what is identified in the input parameters. This ensures that the assignment requirements can be properly met with the given `paramsBulb.dat` file. After the first image, the camera rotates around the fractal, slowly decreasing its position in the `z` axis from `1` to `-1` across 7200 frames. The position is computed as follows:
 
 * the `x` coordinate is `cos(frame_number/500)`
@@ -102,7 +102,7 @@ Each iteration, `init3D` is called again to ensure the camera is still facing th
 With the exception of the first frame, each subsequent frame's parameters are generated during the previous frame's position in the loop. That is, the parameters for frame `i` are computed before rendering frame `i-1`. An array of `CameraParams` structures are kept in order to keep track of current and previous configurations. One could add support for rendering multiple frames at once, since the configurations are all available in memory. This would be a reasonable next step, and a good use for something like OpenMP.
 
 
-###Final Result
+### Final Result
 To compute the final result, the following configuration file (`bulb_params.dat`) was used:
 
 ```
